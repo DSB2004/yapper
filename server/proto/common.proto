@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package common;
+
+message Empty {}
+
+message UserDetails{
+  string userId=1;
+  string name=2;
+  string avatar=3;
+}
+
+
+message MessageSummary{
+  UserDetails user=1;
+  string message=2;
+  string type=3;
+  string createdAt=4;
+}

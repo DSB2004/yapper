@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package chatroom;
+
+import "common.proto";
+
+
+service User {
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+  rpc GetChatrooms(GetChatroomsRequest) returns (GetChatroomsResponse);
+  rpc GetChatroom(GetChatroomRequest)returns (GetChatroomResponse);
+  rpc CreateChatroom(CreateChatroomRequest) returns (CreateChatroomResponse);
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string message = 1;
+  bool success = 2;
+  int32 status = 3;
+}
+
+
+message GetChatroomsRequest {
+  string userId = 1;
+}
+
+message ChatroomSummary{
+  string chatroomId = 1;
+  repeated common.UserDetails participants = 2;
+  optional common.MessageSummary lastMessage = 3;
+  optional string name = 4;
+  optional string description = 5;
+  optional string icon = 6;
+}
+
+message GetChatroomsResponse{
+  string message = 1;
+  bool success = 2;
+  repeated ChatroomSummary chats=3;
+}
+
+
+message GetChatroomRequest {
+  string chatroomId = 1;
+}
+
+message GetChatroomResponse {
+  string chatroomId = 1;
+  repeated common.UserDetails participants = 2;
+  string createdAt=3;
+  common.UserDetails createdBy=4;
+  optional string updatedAt=5;
+  optional common.UserDetails updatedBy=6; 
+  optional common.MessageSummary lastMessage = 7;
+  optional string name = 8;
+  optional string description = 9;
+  optional string icon=10;
+  string type=11;
+  string message = 12;
+  bool success = 13;
+  bool isActive=14;
+}
+
+
+message CreateChatroomRequest {
+  repeated string participants = 1;
+  string createdBy=2;
+  optional string name = 3;
+  optional string description = 4;
+  optional string icon=5;
+  string type=6;
+}
+
+message CreateChatroomResponse {
+ string message = 1;
+  bool success = 2;
+  string chatroomId = 3;
+}
+

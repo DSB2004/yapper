@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package auth;
+
+service Auth {
+  rpc LoginUser (LoginRequest) returns (LoginResponse);
+  rpc VerifyUser (VerifyRequest) returns (VerifyResponse);
+  rpc ResendOtp (ResendOtpRequest) returns (ResendOtpResponse);
+  rpc ValidateUser (ValidateUserRequest) returns (ValidateUserResponse);
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message LoginRequest {
+  string phone = 1;
+}
+
+message LoginResponse {
+  string message = 1;
+  bool success = 2;
+  int32 status = 3;
+}
+
+message VerifyRequest {
+  string phone = 1;
+  string otp = 2;
+}
+
+message VerifyResponse {
+  string message = 1;
+  bool success = 2;
+  int32 status = 3;
+  optional string accessToken = 4;
+  optional string refreshToken = 5;
+}
+
+message ResendOtpRequest {
+  string phone = 1;
+}
+
+message ResendOtpResponse {
+  string message = 1;
+  bool success = 2;
+  int32 status = 3;
+}
+
+message ValidateUserRequest {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+message ValidateUserResponse {
+  string message = 1;
+  bool success = 2;
+  int32 status = 3;
+
+  optional string accessToken = 4;
+  optional string refreshToken = 5;
+
+  optional string authId = 6;
+  optional string phone = 7;
+
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string message = 1;
+  bool success = 2;
+  int32 status = 3;
+}

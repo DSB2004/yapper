@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package user;
+import "common.proto";
+
+service User {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+
+  rpc CreateContact(CreateContactRequest) returns (CreateContactResponse);
+
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse);
+  rpc AddGroupMember(AddGroupMemberRequest) returns (AddGroupMemberResponse);
+  rpc RemoveGroupMember(RemoveGroupMemberRequest) returns (RemoveGroupMemberResponse);
+  rpc LeaveGroup(LeaveGroupRequest) returns (LeaveGroupResponse);
+}
+
+// -------------------- User Messages --------------------
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  string userId = 1;
+  string firstName = 2;
+  string phone = 3;
+  string avatar = 4;
+  optional string bio = 5;
+  bool success = 6;
+  string message = 7;
+  string lastName = 8;
+}
+
+
+message GetUsersRequest {
+  repeated string userIds = 1;
+}
+
+message GetUsersResponse {
+  repeated common.UserDetails users = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+
+message CreateUserRequest {
+  string firstName = 1;
+  string phone = 2;
+  string avatar = 3;
+  string authId = 4;
+  string lastName = 5;
+}
+
+message CreateUserResponse {
+  string userId = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message UpdateUserRequest {
+  string userId = 1;
+  string firstName = 2;
+  string avatar = 3;
+  string lastName = 4;
+}
+
+message UpdateUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+
+message CreateContactRequest {
+  string userId = 1; 
+  string firstName = 2;
+  string phone = 3;
+  string lastName = 4;
+
+  
+}
+
+message CreateContactResponse {
+  string contactId = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message BlockContactRequest {
+  string contactId = 1;
+}
+
+message BlockContactResponse {
+  string contactId = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// -------------------- Group Messages --------------------
+message GroupMember {
+  string contactId = 1;
+  string name = 2;
+  string avatar = 3;
+}
+
+message CreateGroupRequest {
+  string name = 1;
+  string description = 2;
+  string icon = 3;
+  repeated GroupMember members = 4;
+  string userId=5;
+}
+
+message CreateGroupResponse {
+  string groupId = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message UpdateGroupRequest {
+  string groupId = 1;
+  string name = 2;
+  string description = 3;
+  string icon = 4;
+  string userId=5;
+}
+
+message UpdateGroupResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message AddGroupMemberRequest {
+  string groupId = 1;
+  repeated GroupMember members = 2;
+  string userId=3;
+}
+
+message AddGroupMemberResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message RemoveGroupMemberRequest {
+  string groupId = 1;
+  repeated string contactIds = 2;
+  string userId=3;
+}
+
+message RemoveGroupMemberResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message LeaveGroupRequest {
+  string groupId = 1;
+  string userId=2;
+}
+
+message LeaveGroupResponse {
+  bool success = 1;
+  string message = 2;
+}

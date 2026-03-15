@@ -1,0 +1,21 @@
+{
+  "name": "@yapper/types",
+  "module": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --external @grpc/grpc-js",
+    "clean": "rm -rf dist .turbo node_modules",
+    "proto:gen": "mkdir -p src/generated && bun x protoc --ts_proto_out=src/generated --ts_proto_opt=outputServices=grpc-js,esModuleInterop=true  --proto_path=../../proto   ../../proto/*.proto",
+    "proto:generate": "bun run proto:gen && bun run build"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.3"
+  },
+  "devDependencies": {
+    "ts-proto": "^2.11.5",
+    "tsup": "^8.5.1",
+    "typescript": "^5.2.2"
+  }
+}

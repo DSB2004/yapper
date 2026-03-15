@@ -1,0 +1,20 @@
+{
+  "name": "@yapper/utils",
+  "module": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --external @grpc/grpc-js"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@paralleldrive/cuid2": "^3.3.0",
+    "tsup": "^8.5.1"
+  }
+}
