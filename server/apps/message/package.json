@@ -21,8 +21,17 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/microservices": "^11.1.18",
+    "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^11.0.1",
+    "@typegoose/typegoose": "^13.2.1",
+    "@yapper/types": "workspace:*",
+    "@yapper/utils": "workspace:*",
+    "dotenv": "^17.4.1",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^9.4.1",
     "prisma": "^7.4.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
