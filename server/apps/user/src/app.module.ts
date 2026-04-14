@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ServicesModule } from './services/services.module';
 import { KafkaModule } from './kafka/kafka.module';
+import { RpcModule } from './rpc/rpc.module';
 
 @Module({
-  imports: [ServicesModule, KafkaModule],
+  imports: [ServicesModule],
 })
 export class AppModule {}

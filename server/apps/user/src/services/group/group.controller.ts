@@ -14,6 +14,7 @@ export class GroupController {
   constructor(private readonly service: GroupService) {}
   @GrpcMethod('User', 'CreateGroup')
   async createGroup(payload: CreateGroupRequest) {
+    console.log(payload);
     return await this.service.createGroup(payload);
   }
 

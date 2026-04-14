@@ -18,6 +18,7 @@ import {
   type ServiceError,
   type UntypedServiceImplementation,
 } from "@grpc/grpc-js";
+import { HealthCheckRequest as HealthCheckRequest1, HealthCheckResponse as HealthCheckResponse2 } from "./common";
 
 export const protobufPackage = "auth";
 
@@ -63,8 +64,8 @@ export interface ValidateUserResponse {
   message: string;
   success: boolean;
   status: number;
-  accessToken?: string | undefined;
-  refreshToken?: string | undefined;
+  accessToken: string;
+  refreshToken: string;
   authId?: string | undefined;
   phone?: string | undefined;
 }
@@ -659,8 +660,8 @@ function createBaseValidateUserResponse(): ValidateUserResponse {
     message: "",
     success: false,
     status: 0,
-    accessToken: undefined,
-    refreshToken: undefined,
+    accessToken: "",
+    refreshToken: "",
     authId: undefined,
     phone: undefined,
   };
@@ -677,10 +678,10 @@ export const ValidateUserResponse: MessageFns<ValidateUserResponse> = {
     if (message.status !== 0) {
       writer.uint32(24).int32(message.status);
     }
-    if (message.accessToken !== undefined) {
+    if (message.accessToken !== "") {
       writer.uint32(34).string(message.accessToken);
     }
-    if (message.refreshToken !== undefined) {
+    if (message.refreshToken !== "") {
       writer.uint32(42).string(message.refreshToken);
     }
     if (message.authId !== undefined) {
@@ -769,8 +770,8 @@ export const ValidateUserResponse: MessageFns<ValidateUserResponse> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       status: isSet(object.status) ? globalThis.Number(object.status) : 0,
-      accessToken: isSet(object.accessToken) ? globalThis.String(object.accessToken) : undefined,
-      refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : undefined,
+      accessToken: isSet(object.accessToken) ? globalThis.String(object.accessToken) : "",
+      refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "",
       authId: isSet(object.authId) ? globalThis.String(object.authId) : undefined,
       phone: isSet(object.phone) ? globalThis.String(object.phone) : undefined,
     };
@@ -787,10 +788,10 @@ export const ValidateUserResponse: MessageFns<ValidateUserResponse> = {
     if (message.status !== 0) {
       obj.status = Math.round(message.status);
     }
-    if (message.accessToken !== undefined) {
+    if (message.accessToken !== "") {
       obj.accessToken = message.accessToken;
     }
-    if (message.refreshToken !== undefined) {
+    if (message.refreshToken !== "") {
       obj.refreshToken = message.refreshToken;
     }
     if (message.authId !== undefined) {
@@ -810,8 +811,8 @@ export const ValidateUserResponse: MessageFns<ValidateUserResponse> = {
     message.message = object.message ?? "";
     message.success = object.success ?? false;
     message.status = object.status ?? 0;
-    message.accessToken = object.accessToken ?? undefined;
-    message.refreshToken = object.refreshToken ?? undefined;
+    message.accessToken = object.accessToken ?? "";
+    message.refreshToken = object.refreshToken ?? "";
     message.authId = object.authId ?? undefined;
     message.phone = object.phone ?? undefined;
     return message;
@@ -996,10 +997,11 @@ export const AuthService = {
     path: "/auth.Auth/HealthCheck" as const,
     requestStream: false as const,
     responseStream: false as const,
-    requestSerialize: (value: HealthCheckRequest): Buffer => Buffer.from(HealthCheckRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): HealthCheckRequest => HealthCheckRequest.decode(value),
-    responseSerialize: (value: HealthCheckResponse): Buffer => Buffer.from(HealthCheckResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): HealthCheckResponse => HealthCheckResponse.decode(value),
+    requestSerialize: (value: HealthCheckRequest1): Buffer => Buffer.from(HealthCheckRequest1.encode(value).finish()),
+    requestDeserialize: (value: Buffer): HealthCheckRequest1 => HealthCheckRequest1.decode(value),
+    responseSerialize: (value: HealthCheckResponse2): Buffer =>
+      Buffer.from(HealthCheckResponse2.encode(value).finish()),
+    responseDeserialize: (value: Buffer): HealthCheckResponse2 => HealthCheckResponse2.decode(value),
   },
 } as const;
 
@@ -1008,7 +1010,7 @@ export interface AuthServer extends UntypedServiceImplementation {
   verifyUser: handleUnaryCall<VerifyRequest, VerifyResponse>;
   resendOtp: handleUnaryCall<ResendOtpRequest, ResendOtpResponse>;
   validateUser: handleUnaryCall<ValidateUserRequest, ValidateUserResponse>;
-  healthCheck: handleUnaryCall<HealthCheckRequest, HealthCheckResponse>;
+  healthCheck: handleUnaryCall<HealthCheckRequest1, HealthCheckResponse2>;
 }
 
 export interface AuthClient extends Client {
@@ -1073,19 +1075,19 @@ export interface AuthClient extends Client {
     callback: (error: ServiceError | null, response: ValidateUserResponse) => void,
   ): ClientUnaryCall;
   healthCheck(
-    request: HealthCheckRequest,
-    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+    request: HealthCheckRequest1,
+    callback: (error: ServiceError | null, response: HealthCheckResponse2) => void,
   ): ClientUnaryCall;
   healthCheck(
-    request: HealthCheckRequest,
+    request: HealthCheckRequest1,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+    callback: (error: ServiceError | null, response: HealthCheckResponse2) => void,
   ): ClientUnaryCall;
   healthCheck(
-    request: HealthCheckRequest,
+    request: HealthCheckRequest1,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+    callback: (error: ServiceError | null, response: HealthCheckResponse2) => void,
   ): ClientUnaryCall;
 }
 

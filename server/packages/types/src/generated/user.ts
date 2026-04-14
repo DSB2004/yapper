@@ -18,13 +18,21 @@ import {
   type ServiceError,
   type UntypedServiceImplementation,
 } from "@grpc/grpc-js";
-import { UserDetails } from "./common";
+import { HealthCheckRequest, HealthCheckResponse, UserDetails } from "./common";
 
 export const protobufPackage = "user";
 
 /** -------------------- User Messages -------------------- */
 export interface GetUserRequest {
+  authId: string;
+}
+
+export interface GetUserByIdRequest {
   userId: string;
+}
+
+export interface GetUserByPhoneRequest {
+  phone: string;
 }
 
 export interface GetUserResponse {
@@ -36,6 +44,7 @@ export interface GetUserResponse {
   success: boolean;
   message: string;
   lastName: string;
+  status: number;
 }
 
 export interface GetUsersRequest {
@@ -46,6 +55,7 @@ export interface GetUsersResponse {
   users: UserDetails[];
   success: boolean;
   message: string;
+  status: number;
 }
 
 export interface CreateUserRequest {
@@ -57,13 +67,14 @@ export interface CreateUserRequest {
 }
 
 export interface CreateUserResponse {
-  userId: string;
+  authId: string;
   success: boolean;
   message: string;
+  status: number;
 }
 
 export interface UpdateUserRequest {
-  userId: string;
+  authId: string;
   firstName: string;
   avatar: string;
   lastName: string;
@@ -72,10 +83,11 @@ export interface UpdateUserRequest {
 export interface UpdateUserResponse {
   success: boolean;
   message: string;
+  status: number;
 }
 
 export interface CreateContactRequest {
-  userId: string;
+  authId: string;
   firstName: string;
   phone: string;
   lastName: string;
@@ -85,37 +97,39 @@ export interface CreateContactResponse {
   contactId: string;
   success: boolean;
   message: string;
+  status: number;
+  chatroomId: string;
+  createdBy: string;
+  other?: UserDetails | undefined;
 }
 
 export interface BlockContactRequest {
-  contactId: string;
+  chatroomId: string;
+  authId: string;
 }
 
 export interface BlockContactResponse {
-  contactId: string;
+  chatroomId: string;
   success: boolean;
   message: string;
-}
-
-/** -------------------- Group Messages -------------------- */
-export interface GroupMember {
-  contactId: string;
-  name: string;
-  avatar: string;
+  status: number;
 }
 
 export interface CreateGroupRequest {
   name: string;
   description: string;
   icon: string;
-  members: GroupMember[];
-  userId: string;
+  members: string[];
+  authId: string;
 }
 
 export interface CreateGroupResponse {
   groupId: string;
   success: boolean;
   message: string;
+  status: number;
+  chatroomId: string;
+  createdBy: string;
 }
 
 export interface UpdateGroupRequest {
@@ -123,54 +137,58 @@ export interface UpdateGroupRequest {
   name: string;
   description: string;
   icon: string;
-  userId: string;
+  authId: string;
 }
 
 export interface UpdateGroupResponse {
   success: boolean;
   message: string;
+  status: number;
 }
 
 export interface AddGroupMemberRequest {
   groupId: string;
-  members: GroupMember[];
-  userId: string;
+  members: string[];
+  authId: string;
 }
 
 export interface AddGroupMemberResponse {
   success: boolean;
   message: string;
+  status: number;
 }
 
 export interface RemoveGroupMemberRequest {
   groupId: string;
-  contactIds: string[];
-  userId: string;
+  members: string[];
+  authId: string;
 }
 
 export interface RemoveGroupMemberResponse {
   success: boolean;
   message: string;
+  status: number;
 }
 
 export interface LeaveGroupRequest {
   groupId: string;
-  userId: string;
+  authId: string;
 }
 
 export interface LeaveGroupResponse {
   success: boolean;
   message: string;
+  status: number;
 }
 
 function createBaseGetUserRequest(): GetUserRequest {
-  return { userId: "" };
+  return { authId: "" };
 }
 
 export const GetUserRequest: MessageFns<GetUserRequest> = {
   encode(message: GetUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(10).string(message.authId);
     }
     return writer;
   },
@@ -179,6 +197,64 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGetUserRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.authId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUserRequest {
+    return { authId: isSet(object.authId) ? globalThis.String(object.authId) : "" };
+  },
+
+  toJSON(message: GetUserRequest): unknown {
+    const obj: any = {};
+    if (message.authId !== "") {
+      obj.authId = message.authId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUserRequest>, I>>(base?: I): GetUserRequest {
+    return GetUserRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUserRequest>, I>>(object: I): GetUserRequest {
+    const message = createBaseGetUserRequest();
+    message.authId = object.authId ?? "";
+    return message;
+  },
+};
+
+function createBaseGetUserByIdRequest(): GetUserByIdRequest {
+  return { userId: "" };
+}
+
+export const GetUserByIdRequest: MessageFns<GetUserByIdRequest> = {
+  encode(message: GetUserByIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUserByIdRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUserByIdRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -199,11 +275,11 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
     return message;
   },
 
-  fromJSON(object: any): GetUserRequest {
+  fromJSON(object: any): GetUserByIdRequest {
     return { userId: isSet(object.userId) ? globalThis.String(object.userId) : "" };
   },
 
-  toJSON(message: GetUserRequest): unknown {
+  toJSON(message: GetUserByIdRequest): unknown {
     const obj: any = {};
     if (message.userId !== "") {
       obj.userId = message.userId;
@@ -211,12 +287,70 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetUserRequest>, I>>(base?: I): GetUserRequest {
-    return GetUserRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetUserByIdRequest>, I>>(base?: I): GetUserByIdRequest {
+    return GetUserByIdRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetUserRequest>, I>>(object: I): GetUserRequest {
-    const message = createBaseGetUserRequest();
+  fromPartial<I extends Exact<DeepPartial<GetUserByIdRequest>, I>>(object: I): GetUserByIdRequest {
+    const message = createBaseGetUserByIdRequest();
     message.userId = object.userId ?? "";
+    return message;
+  },
+};
+
+function createBaseGetUserByPhoneRequest(): GetUserByPhoneRequest {
+  return { phone: "" };
+}
+
+export const GetUserByPhoneRequest: MessageFns<GetUserByPhoneRequest> = {
+  encode(message: GetUserByPhoneRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.phone !== "") {
+      writer.uint32(10).string(message.phone);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUserByPhoneRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUserByPhoneRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.phone = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUserByPhoneRequest {
+    return { phone: isSet(object.phone) ? globalThis.String(object.phone) : "" };
+  },
+
+  toJSON(message: GetUserByPhoneRequest): unknown {
+    const obj: any = {};
+    if (message.phone !== "") {
+      obj.phone = message.phone;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUserByPhoneRequest>, I>>(base?: I): GetUserByPhoneRequest {
+    return GetUserByPhoneRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUserByPhoneRequest>, I>>(object: I): GetUserByPhoneRequest {
+    const message = createBaseGetUserByPhoneRequest();
+    message.phone = object.phone ?? "";
     return message;
   },
 };
@@ -231,6 +365,7 @@ function createBaseGetUserResponse(): GetUserResponse {
     success: false,
     message: "",
     lastName: "",
+    status: 0,
   };
 }
 
@@ -259,6 +394,9 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
     }
     if (message.lastName !== "") {
       writer.uint32(66).string(message.lastName);
+    }
+    if (message.status !== 0) {
+      writer.uint32(80).int32(message.status);
     }
     return writer;
   },
@@ -334,6 +472,14 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
           message.lastName = reader.string();
           continue;
         }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -353,6 +499,7 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       lastName: isSet(object.lastName) ? globalThis.String(object.lastName) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -382,6 +529,9 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
     if (message.lastName !== "") {
       obj.lastName = message.lastName;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -398,6 +548,7 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
     message.success = object.success ?? false;
     message.message = object.message ?? "";
     message.lastName = object.lastName ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
@@ -463,7 +614,7 @@ export const GetUsersRequest: MessageFns<GetUsersRequest> = {
 };
 
 function createBaseGetUsersResponse(): GetUsersResponse {
-  return { users: [], success: false, message: "" };
+  return { users: [], success: false, message: "", status: 0 };
 }
 
 export const GetUsersResponse: MessageFns<GetUsersResponse> = {
@@ -476,6 +627,9 @@ export const GetUsersResponse: MessageFns<GetUsersResponse> = {
     }
     if (message.message !== "") {
       writer.uint32(26).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
     }
     return writer;
   },
@@ -511,6 +665,14 @@ export const GetUsersResponse: MessageFns<GetUsersResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -525,6 +687,7 @@ export const GetUsersResponse: MessageFns<GetUsersResponse> = {
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => UserDetails.fromJSON(e)) : [],
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -539,6 +702,9 @@ export const GetUsersResponse: MessageFns<GetUsersResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -550,6 +716,7 @@ export const GetUsersResponse: MessageFns<GetUsersResponse> = {
     message.users = object.users?.map((e) => UserDetails.fromPartial(e)) || [];
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
@@ -679,19 +846,22 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
 };
 
 function createBaseCreateUserResponse(): CreateUserResponse {
-  return { userId: "", success: false, message: "" };
+  return { authId: "", success: false, message: "", status: 0 };
 }
 
 export const CreateUserResponse: MessageFns<CreateUserResponse> = {
   encode(message: CreateUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(10).string(message.authId);
     }
     if (message.success !== false) {
       writer.uint32(16).bool(message.success);
     }
     if (message.message !== "") {
       writer.uint32(26).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
     }
     return writer;
   },
@@ -708,7 +878,7 @@ export const CreateUserResponse: MessageFns<CreateUserResponse> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.authId = reader.string();
           continue;
         }
         case 2: {
@@ -727,6 +897,14 @@ export const CreateUserResponse: MessageFns<CreateUserResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -738,22 +916,26 @@ export const CreateUserResponse: MessageFns<CreateUserResponse> = {
 
   fromJSON(object: any): CreateUserResponse {
     return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
   toJSON(message: CreateUserResponse): unknown {
     const obj: any = {};
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     if (message.success !== false) {
       obj.success = message.success;
     }
     if (message.message !== "") {
       obj.message = message.message;
+    }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
     }
     return obj;
   },
@@ -763,21 +945,22 @@ export const CreateUserResponse: MessageFns<CreateUserResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateUserResponse>, I>>(object: I): CreateUserResponse {
     const message = createBaseCreateUserResponse();
-    message.userId = object.userId ?? "";
+    message.authId = object.authId ?? "";
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
 
 function createBaseUpdateUserRequest(): UpdateUserRequest {
-  return { userId: "", firstName: "", avatar: "", lastName: "" };
+  return { authId: "", firstName: "", avatar: "", lastName: "" };
 }
 
 export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
   encode(message: UpdateUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(10).string(message.authId);
     }
     if (message.firstName !== "") {
       writer.uint32(18).string(message.firstName);
@@ -803,7 +986,7 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.authId = reader.string();
           continue;
         }
         case 2: {
@@ -841,7 +1024,7 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
 
   fromJSON(object: any): UpdateUserRequest {
     return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
       firstName: isSet(object.firstName) ? globalThis.String(object.firstName) : "",
       avatar: isSet(object.avatar) ? globalThis.String(object.avatar) : "",
       lastName: isSet(object.lastName) ? globalThis.String(object.lastName) : "",
@@ -850,8 +1033,8 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
 
   toJSON(message: UpdateUserRequest): unknown {
     const obj: any = {};
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     if (message.firstName !== "") {
       obj.firstName = message.firstName;
@@ -870,7 +1053,7 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(object: I): UpdateUserRequest {
     const message = createBaseUpdateUserRequest();
-    message.userId = object.userId ?? "";
+    message.authId = object.authId ?? "";
     message.firstName = object.firstName ?? "";
     message.avatar = object.avatar ?? "";
     message.lastName = object.lastName ?? "";
@@ -879,7 +1062,7 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
 };
 
 function createBaseUpdateUserResponse(): UpdateUserResponse {
-  return { success: false, message: "" };
+  return { success: false, message: "", status: 0 };
 }
 
 export const UpdateUserResponse: MessageFns<UpdateUserResponse> = {
@@ -889,6 +1072,9 @@ export const UpdateUserResponse: MessageFns<UpdateUserResponse> = {
     }
     if (message.message !== "") {
       writer.uint32(18).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(24).int32(message.status);
     }
     return writer;
   },
@@ -916,6 +1102,14 @@ export const UpdateUserResponse: MessageFns<UpdateUserResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -929,6 +1123,7 @@ export const UpdateUserResponse: MessageFns<UpdateUserResponse> = {
     return {
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -940,6 +1135,9 @@ export const UpdateUserResponse: MessageFns<UpdateUserResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -950,18 +1148,19 @@ export const UpdateUserResponse: MessageFns<UpdateUserResponse> = {
     const message = createBaseUpdateUserResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
 
 function createBaseCreateContactRequest(): CreateContactRequest {
-  return { userId: "", firstName: "", phone: "", lastName: "" };
+  return { authId: "", firstName: "", phone: "", lastName: "" };
 }
 
 export const CreateContactRequest: MessageFns<CreateContactRequest> = {
   encode(message: CreateContactRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(10).string(message.authId);
     }
     if (message.firstName !== "") {
       writer.uint32(18).string(message.firstName);
@@ -987,7 +1186,7 @@ export const CreateContactRequest: MessageFns<CreateContactRequest> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.authId = reader.string();
           continue;
         }
         case 2: {
@@ -1025,7 +1224,7 @@ export const CreateContactRequest: MessageFns<CreateContactRequest> = {
 
   fromJSON(object: any): CreateContactRequest {
     return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
       firstName: isSet(object.firstName) ? globalThis.String(object.firstName) : "",
       phone: isSet(object.phone) ? globalThis.String(object.phone) : "",
       lastName: isSet(object.lastName) ? globalThis.String(object.lastName) : "",
@@ -1034,8 +1233,8 @@ export const CreateContactRequest: MessageFns<CreateContactRequest> = {
 
   toJSON(message: CreateContactRequest): unknown {
     const obj: any = {};
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     if (message.firstName !== "") {
       obj.firstName = message.firstName;
@@ -1054,7 +1253,7 @@ export const CreateContactRequest: MessageFns<CreateContactRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateContactRequest>, I>>(object: I): CreateContactRequest {
     const message = createBaseCreateContactRequest();
-    message.userId = object.userId ?? "";
+    message.authId = object.authId ?? "";
     message.firstName = object.firstName ?? "";
     message.phone = object.phone ?? "";
     message.lastName = object.lastName ?? "";
@@ -1063,7 +1262,7 @@ export const CreateContactRequest: MessageFns<CreateContactRequest> = {
 };
 
 function createBaseCreateContactResponse(): CreateContactResponse {
-  return { contactId: "", success: false, message: "" };
+  return { contactId: "", success: false, message: "", status: 0, chatroomId: "", createdBy: "", other: undefined };
 }
 
 export const CreateContactResponse: MessageFns<CreateContactResponse> = {
@@ -1076,6 +1275,18 @@ export const CreateContactResponse: MessageFns<CreateContactResponse> = {
     }
     if (message.message !== "") {
       writer.uint32(26).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
+    }
+    if (message.chatroomId !== "") {
+      writer.uint32(42).string(message.chatroomId);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(50).string(message.createdBy);
+    }
+    if (message.other !== undefined) {
+      UserDetails.encode(message.other, writer.uint32(58).fork()).join();
     }
     return writer;
   },
@@ -1111,6 +1322,38 @@ export const CreateContactResponse: MessageFns<CreateContactResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.chatroomId = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.createdBy = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.other = UserDetails.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1125,6 +1368,10 @@ export const CreateContactResponse: MessageFns<CreateContactResponse> = {
       contactId: isSet(object.contactId) ? globalThis.String(object.contactId) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
+      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+      other: isSet(object.other) ? UserDetails.fromJSON(object.other) : undefined,
     };
   },
 
@@ -1139,6 +1386,18 @@ export const CreateContactResponse: MessageFns<CreateContactResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
+    if (message.chatroomId !== "") {
+      obj.chatroomId = message.chatroomId;
+    }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
+    if (message.other !== undefined) {
+      obj.other = UserDetails.toJSON(message.other);
+    }
     return obj;
   },
 
@@ -1150,18 +1409,27 @@ export const CreateContactResponse: MessageFns<CreateContactResponse> = {
     message.contactId = object.contactId ?? "";
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
+    message.chatroomId = object.chatroomId ?? "";
+    message.createdBy = object.createdBy ?? "";
+    message.other = (object.other !== undefined && object.other !== null)
+      ? UserDetails.fromPartial(object.other)
+      : undefined;
     return message;
   },
 };
 
 function createBaseBlockContactRequest(): BlockContactRequest {
-  return { contactId: "" };
+  return { chatroomId: "", authId: "" };
 }
 
 export const BlockContactRequest: MessageFns<BlockContactRequest> = {
   encode(message: BlockContactRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.contactId !== "") {
-      writer.uint32(10).string(message.contactId);
+    if (message.chatroomId !== "") {
+      writer.uint32(10).string(message.chatroomId);
+    }
+    if (message.authId !== "") {
+      writer.uint32(18).string(message.authId);
     }
     return writer;
   },
@@ -1178,7 +1446,15 @@ export const BlockContactRequest: MessageFns<BlockContactRequest> = {
             break;
           }
 
-          message.contactId = reader.string();
+          message.chatroomId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.authId = reader.string();
           continue;
         }
       }
@@ -1191,13 +1467,19 @@ export const BlockContactRequest: MessageFns<BlockContactRequest> = {
   },
 
   fromJSON(object: any): BlockContactRequest {
-    return { contactId: isSet(object.contactId) ? globalThis.String(object.contactId) : "" };
+    return {
+      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
+    };
   },
 
   toJSON(message: BlockContactRequest): unknown {
     const obj: any = {};
-    if (message.contactId !== "") {
-      obj.contactId = message.contactId;
+    if (message.chatroomId !== "") {
+      obj.chatroomId = message.chatroomId;
+    }
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     return obj;
   },
@@ -1207,25 +1489,29 @@ export const BlockContactRequest: MessageFns<BlockContactRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<BlockContactRequest>, I>>(object: I): BlockContactRequest {
     const message = createBaseBlockContactRequest();
-    message.contactId = object.contactId ?? "";
+    message.chatroomId = object.chatroomId ?? "";
+    message.authId = object.authId ?? "";
     return message;
   },
 };
 
 function createBaseBlockContactResponse(): BlockContactResponse {
-  return { contactId: "", success: false, message: "" };
+  return { chatroomId: "", success: false, message: "", status: 0 };
 }
 
 export const BlockContactResponse: MessageFns<BlockContactResponse> = {
   encode(message: BlockContactResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.contactId !== "") {
-      writer.uint32(10).string(message.contactId);
+    if (message.chatroomId !== "") {
+      writer.uint32(10).string(message.chatroomId);
     }
     if (message.success !== false) {
       writer.uint32(16).bool(message.success);
     }
     if (message.message !== "") {
       writer.uint32(26).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
     }
     return writer;
   },
@@ -1242,7 +1528,7 @@ export const BlockContactResponse: MessageFns<BlockContactResponse> = {
             break;
           }
 
-          message.contactId = reader.string();
+          message.chatroomId = reader.string();
           continue;
         }
         case 2: {
@@ -1261,6 +1547,14 @@ export const BlockContactResponse: MessageFns<BlockContactResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1272,22 +1566,26 @@ export const BlockContactResponse: MessageFns<BlockContactResponse> = {
 
   fromJSON(object: any): BlockContactResponse {
     return {
-      contactId: isSet(object.contactId) ? globalThis.String(object.contactId) : "",
+      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
   toJSON(message: BlockContactResponse): unknown {
     const obj: any = {};
-    if (message.contactId !== "") {
-      obj.contactId = message.contactId;
+    if (message.chatroomId !== "") {
+      obj.chatroomId = message.chatroomId;
     }
     if (message.success !== false) {
       obj.success = message.success;
     }
     if (message.message !== "") {
       obj.message = message.message;
+    }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
     }
     return obj;
   },
@@ -1297,107 +1595,16 @@ export const BlockContactResponse: MessageFns<BlockContactResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<BlockContactResponse>, I>>(object: I): BlockContactResponse {
     const message = createBaseBlockContactResponse();
-    message.contactId = object.contactId ?? "";
+    message.chatroomId = object.chatroomId ?? "";
     message.success = object.success ?? false;
     message.message = object.message ?? "";
-    return message;
-  },
-};
-
-function createBaseGroupMember(): GroupMember {
-  return { contactId: "", name: "", avatar: "" };
-}
-
-export const GroupMember: MessageFns<GroupMember> = {
-  encode(message: GroupMember, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.contactId !== "") {
-      writer.uint32(10).string(message.contactId);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    if (message.avatar !== "") {
-      writer.uint32(26).string(message.avatar);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): GroupMember {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGroupMember();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.contactId = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.avatar = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GroupMember {
-    return {
-      contactId: isSet(object.contactId) ? globalThis.String(object.contactId) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      avatar: isSet(object.avatar) ? globalThis.String(object.avatar) : "",
-    };
-  },
-
-  toJSON(message: GroupMember): unknown {
-    const obj: any = {};
-    if (message.contactId !== "") {
-      obj.contactId = message.contactId;
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.avatar !== "") {
-      obj.avatar = message.avatar;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GroupMember>, I>>(base?: I): GroupMember {
-    return GroupMember.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GroupMember>, I>>(object: I): GroupMember {
-    const message = createBaseGroupMember();
-    message.contactId = object.contactId ?? "";
-    message.name = object.name ?? "";
-    message.avatar = object.avatar ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
 
 function createBaseCreateGroupRequest(): CreateGroupRequest {
-  return { name: "", description: "", icon: "", members: [], userId: "" };
+  return { name: "", description: "", icon: "", members: [], authId: "" };
 }
 
 export const CreateGroupRequest: MessageFns<CreateGroupRequest> = {
@@ -1412,10 +1619,10 @@ export const CreateGroupRequest: MessageFns<CreateGroupRequest> = {
       writer.uint32(26).string(message.icon);
     }
     for (const v of message.members) {
-      GroupMember.encode(v!, writer.uint32(34).fork()).join();
+      writer.uint32(34).string(v!);
     }
-    if (message.userId !== "") {
-      writer.uint32(42).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(42).string(message.authId);
     }
     return writer;
   },
@@ -1456,7 +1663,7 @@ export const CreateGroupRequest: MessageFns<CreateGroupRequest> = {
             break;
           }
 
-          message.members.push(GroupMember.decode(reader, reader.uint32()));
+          message.members.push(reader.string());
           continue;
         }
         case 5: {
@@ -1464,7 +1671,7 @@ export const CreateGroupRequest: MessageFns<CreateGroupRequest> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.authId = reader.string();
           continue;
         }
       }
@@ -1481,8 +1688,8 @@ export const CreateGroupRequest: MessageFns<CreateGroupRequest> = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       description: isSet(object.description) ? globalThis.String(object.description) : "",
       icon: isSet(object.icon) ? globalThis.String(object.icon) : "",
-      members: globalThis.Array.isArray(object?.members) ? object.members.map((e: any) => GroupMember.fromJSON(e)) : [],
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      members: globalThis.Array.isArray(object?.members) ? object.members.map((e: any) => globalThis.String(e)) : [],
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
     };
   },
 
@@ -1498,10 +1705,10 @@ export const CreateGroupRequest: MessageFns<CreateGroupRequest> = {
       obj.icon = message.icon;
     }
     if (message.members?.length) {
-      obj.members = message.members.map((e) => GroupMember.toJSON(e));
+      obj.members = message.members;
     }
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     return obj;
   },
@@ -1514,14 +1721,14 @@ export const CreateGroupRequest: MessageFns<CreateGroupRequest> = {
     message.name = object.name ?? "";
     message.description = object.description ?? "";
     message.icon = object.icon ?? "";
-    message.members = object.members?.map((e) => GroupMember.fromPartial(e)) || [];
-    message.userId = object.userId ?? "";
+    message.members = object.members?.map((e) => e) || [];
+    message.authId = object.authId ?? "";
     return message;
   },
 };
 
 function createBaseCreateGroupResponse(): CreateGroupResponse {
-  return { groupId: "", success: false, message: "" };
+  return { groupId: "", success: false, message: "", status: 0, chatroomId: "", createdBy: "" };
 }
 
 export const CreateGroupResponse: MessageFns<CreateGroupResponse> = {
@@ -1534,6 +1741,15 @@ export const CreateGroupResponse: MessageFns<CreateGroupResponse> = {
     }
     if (message.message !== "") {
       writer.uint32(26).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
+    }
+    if (message.chatroomId !== "") {
+      writer.uint32(42).string(message.chatroomId);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(50).string(message.createdBy);
     }
     return writer;
   },
@@ -1569,6 +1785,30 @@ export const CreateGroupResponse: MessageFns<CreateGroupResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.chatroomId = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.createdBy = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1583,6 +1823,9 @@ export const CreateGroupResponse: MessageFns<CreateGroupResponse> = {
       groupId: isSet(object.groupId) ? globalThis.String(object.groupId) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
+      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
   },
 
@@ -1597,6 +1840,15 @@ export const CreateGroupResponse: MessageFns<CreateGroupResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
+    if (message.chatroomId !== "") {
+      obj.chatroomId = message.chatroomId;
+    }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
     return obj;
   },
 
@@ -1608,12 +1860,15 @@ export const CreateGroupResponse: MessageFns<CreateGroupResponse> = {
     message.groupId = object.groupId ?? "";
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
+    message.chatroomId = object.chatroomId ?? "";
+    message.createdBy = object.createdBy ?? "";
     return message;
   },
 };
 
 function createBaseUpdateGroupRequest(): UpdateGroupRequest {
-  return { groupId: "", name: "", description: "", icon: "", userId: "" };
+  return { groupId: "", name: "", description: "", icon: "", authId: "" };
 }
 
 export const UpdateGroupRequest: MessageFns<UpdateGroupRequest> = {
@@ -1630,8 +1885,8 @@ export const UpdateGroupRequest: MessageFns<UpdateGroupRequest> = {
     if (message.icon !== "") {
       writer.uint32(34).string(message.icon);
     }
-    if (message.userId !== "") {
-      writer.uint32(42).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(42).string(message.authId);
     }
     return writer;
   },
@@ -1680,7 +1935,7 @@ export const UpdateGroupRequest: MessageFns<UpdateGroupRequest> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.authId = reader.string();
           continue;
         }
       }
@@ -1698,7 +1953,7 @@ export const UpdateGroupRequest: MessageFns<UpdateGroupRequest> = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       description: isSet(object.description) ? globalThis.String(object.description) : "",
       icon: isSet(object.icon) ? globalThis.String(object.icon) : "",
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
     };
   },
 
@@ -1716,8 +1971,8 @@ export const UpdateGroupRequest: MessageFns<UpdateGroupRequest> = {
     if (message.icon !== "") {
       obj.icon = message.icon;
     }
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     return obj;
   },
@@ -1731,13 +1986,13 @@ export const UpdateGroupRequest: MessageFns<UpdateGroupRequest> = {
     message.name = object.name ?? "";
     message.description = object.description ?? "";
     message.icon = object.icon ?? "";
-    message.userId = object.userId ?? "";
+    message.authId = object.authId ?? "";
     return message;
   },
 };
 
 function createBaseUpdateGroupResponse(): UpdateGroupResponse {
-  return { success: false, message: "" };
+  return { success: false, message: "", status: 0 };
 }
 
 export const UpdateGroupResponse: MessageFns<UpdateGroupResponse> = {
@@ -1747,6 +2002,9 @@ export const UpdateGroupResponse: MessageFns<UpdateGroupResponse> = {
     }
     if (message.message !== "") {
       writer.uint32(18).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(24).int32(message.status);
     }
     return writer;
   },
@@ -1774,6 +2032,14 @@ export const UpdateGroupResponse: MessageFns<UpdateGroupResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1787,6 +2053,7 @@ export const UpdateGroupResponse: MessageFns<UpdateGroupResponse> = {
     return {
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -1798,6 +2065,9 @@ export const UpdateGroupResponse: MessageFns<UpdateGroupResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -1808,12 +2078,13 @@ export const UpdateGroupResponse: MessageFns<UpdateGroupResponse> = {
     const message = createBaseUpdateGroupResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
 
 function createBaseAddGroupMemberRequest(): AddGroupMemberRequest {
-  return { groupId: "", members: [], userId: "" };
+  return { groupId: "", members: [], authId: "" };
 }
 
 export const AddGroupMemberRequest: MessageFns<AddGroupMemberRequest> = {
@@ -1822,10 +2093,10 @@ export const AddGroupMemberRequest: MessageFns<AddGroupMemberRequest> = {
       writer.uint32(10).string(message.groupId);
     }
     for (const v of message.members) {
-      GroupMember.encode(v!, writer.uint32(18).fork()).join();
+      writer.uint32(18).string(v!);
     }
-    if (message.userId !== "") {
-      writer.uint32(26).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(26).string(message.authId);
     }
     return writer;
   },
@@ -1850,7 +2121,7 @@ export const AddGroupMemberRequest: MessageFns<AddGroupMemberRequest> = {
             break;
           }
 
-          message.members.push(GroupMember.decode(reader, reader.uint32()));
+          message.members.push(reader.string());
           continue;
         }
         case 3: {
@@ -1858,7 +2129,7 @@ export const AddGroupMemberRequest: MessageFns<AddGroupMemberRequest> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.authId = reader.string();
           continue;
         }
       }
@@ -1873,8 +2144,8 @@ export const AddGroupMemberRequest: MessageFns<AddGroupMemberRequest> = {
   fromJSON(object: any): AddGroupMemberRequest {
     return {
       groupId: isSet(object.groupId) ? globalThis.String(object.groupId) : "",
-      members: globalThis.Array.isArray(object?.members) ? object.members.map((e: any) => GroupMember.fromJSON(e)) : [],
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      members: globalThis.Array.isArray(object?.members) ? object.members.map((e: any) => globalThis.String(e)) : [],
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
     };
   },
 
@@ -1884,10 +2155,10 @@ export const AddGroupMemberRequest: MessageFns<AddGroupMemberRequest> = {
       obj.groupId = message.groupId;
     }
     if (message.members?.length) {
-      obj.members = message.members.map((e) => GroupMember.toJSON(e));
+      obj.members = message.members;
     }
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     return obj;
   },
@@ -1898,14 +2169,14 @@ export const AddGroupMemberRequest: MessageFns<AddGroupMemberRequest> = {
   fromPartial<I extends Exact<DeepPartial<AddGroupMemberRequest>, I>>(object: I): AddGroupMemberRequest {
     const message = createBaseAddGroupMemberRequest();
     message.groupId = object.groupId ?? "";
-    message.members = object.members?.map((e) => GroupMember.fromPartial(e)) || [];
-    message.userId = object.userId ?? "";
+    message.members = object.members?.map((e) => e) || [];
+    message.authId = object.authId ?? "";
     return message;
   },
 };
 
 function createBaseAddGroupMemberResponse(): AddGroupMemberResponse {
-  return { success: false, message: "" };
+  return { success: false, message: "", status: 0 };
 }
 
 export const AddGroupMemberResponse: MessageFns<AddGroupMemberResponse> = {
@@ -1915,6 +2186,9 @@ export const AddGroupMemberResponse: MessageFns<AddGroupMemberResponse> = {
     }
     if (message.message !== "") {
       writer.uint32(18).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(24).int32(message.status);
     }
     return writer;
   },
@@ -1942,6 +2216,14 @@ export const AddGroupMemberResponse: MessageFns<AddGroupMemberResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1955,6 +2237,7 @@ export const AddGroupMemberResponse: MessageFns<AddGroupMemberResponse> = {
     return {
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -1966,6 +2249,9 @@ export const AddGroupMemberResponse: MessageFns<AddGroupMemberResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -1976,12 +2262,13 @@ export const AddGroupMemberResponse: MessageFns<AddGroupMemberResponse> = {
     const message = createBaseAddGroupMemberResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
 
 function createBaseRemoveGroupMemberRequest(): RemoveGroupMemberRequest {
-  return { groupId: "", contactIds: [], userId: "" };
+  return { groupId: "", members: [], authId: "" };
 }
 
 export const RemoveGroupMemberRequest: MessageFns<RemoveGroupMemberRequest> = {
@@ -1989,11 +2276,11 @@ export const RemoveGroupMemberRequest: MessageFns<RemoveGroupMemberRequest> = {
     if (message.groupId !== "") {
       writer.uint32(10).string(message.groupId);
     }
-    for (const v of message.contactIds) {
+    for (const v of message.members) {
       writer.uint32(18).string(v!);
     }
-    if (message.userId !== "") {
-      writer.uint32(26).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(26).string(message.authId);
     }
     return writer;
   },
@@ -2018,7 +2305,7 @@ export const RemoveGroupMemberRequest: MessageFns<RemoveGroupMemberRequest> = {
             break;
           }
 
-          message.contactIds.push(reader.string());
+          message.members.push(reader.string());
           continue;
         }
         case 3: {
@@ -2026,7 +2313,7 @@ export const RemoveGroupMemberRequest: MessageFns<RemoveGroupMemberRequest> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.authId = reader.string();
           continue;
         }
       }
@@ -2041,10 +2328,8 @@ export const RemoveGroupMemberRequest: MessageFns<RemoveGroupMemberRequest> = {
   fromJSON(object: any): RemoveGroupMemberRequest {
     return {
       groupId: isSet(object.groupId) ? globalThis.String(object.groupId) : "",
-      contactIds: globalThis.Array.isArray(object?.contactIds)
-        ? object.contactIds.map((e: any) => globalThis.String(e))
-        : [],
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      members: globalThis.Array.isArray(object?.members) ? object.members.map((e: any) => globalThis.String(e)) : [],
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
     };
   },
 
@@ -2053,11 +2338,11 @@ export const RemoveGroupMemberRequest: MessageFns<RemoveGroupMemberRequest> = {
     if (message.groupId !== "") {
       obj.groupId = message.groupId;
     }
-    if (message.contactIds?.length) {
-      obj.contactIds = message.contactIds;
+    if (message.members?.length) {
+      obj.members = message.members;
     }
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     return obj;
   },
@@ -2068,14 +2353,14 @@ export const RemoveGroupMemberRequest: MessageFns<RemoveGroupMemberRequest> = {
   fromPartial<I extends Exact<DeepPartial<RemoveGroupMemberRequest>, I>>(object: I): RemoveGroupMemberRequest {
     const message = createBaseRemoveGroupMemberRequest();
     message.groupId = object.groupId ?? "";
-    message.contactIds = object.contactIds?.map((e) => e) || [];
-    message.userId = object.userId ?? "";
+    message.members = object.members?.map((e) => e) || [];
+    message.authId = object.authId ?? "";
     return message;
   },
 };
 
 function createBaseRemoveGroupMemberResponse(): RemoveGroupMemberResponse {
-  return { success: false, message: "" };
+  return { success: false, message: "", status: 0 };
 }
 
 export const RemoveGroupMemberResponse: MessageFns<RemoveGroupMemberResponse> = {
@@ -2085,6 +2370,9 @@ export const RemoveGroupMemberResponse: MessageFns<RemoveGroupMemberResponse> = 
     }
     if (message.message !== "") {
       writer.uint32(18).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(24).int32(message.status);
     }
     return writer;
   },
@@ -2112,6 +2400,14 @@ export const RemoveGroupMemberResponse: MessageFns<RemoveGroupMemberResponse> = 
           message.message = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2125,6 +2421,7 @@ export const RemoveGroupMemberResponse: MessageFns<RemoveGroupMemberResponse> = 
     return {
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -2136,6 +2433,9 @@ export const RemoveGroupMemberResponse: MessageFns<RemoveGroupMemberResponse> = 
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -2146,12 +2446,13 @@ export const RemoveGroupMemberResponse: MessageFns<RemoveGroupMemberResponse> = 
     const message = createBaseRemoveGroupMemberResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
 
 function createBaseLeaveGroupRequest(): LeaveGroupRequest {
-  return { groupId: "", userId: "" };
+  return { groupId: "", authId: "" };
 }
 
 export const LeaveGroupRequest: MessageFns<LeaveGroupRequest> = {
@@ -2159,8 +2460,8 @@ export const LeaveGroupRequest: MessageFns<LeaveGroupRequest> = {
     if (message.groupId !== "") {
       writer.uint32(10).string(message.groupId);
     }
-    if (message.userId !== "") {
-      writer.uint32(18).string(message.userId);
+    if (message.authId !== "") {
+      writer.uint32(18).string(message.authId);
     }
     return writer;
   },
@@ -2185,7 +2486,7 @@ export const LeaveGroupRequest: MessageFns<LeaveGroupRequest> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.authId = reader.string();
           continue;
         }
       }
@@ -2200,7 +2501,7 @@ export const LeaveGroupRequest: MessageFns<LeaveGroupRequest> = {
   fromJSON(object: any): LeaveGroupRequest {
     return {
       groupId: isSet(object.groupId) ? globalThis.String(object.groupId) : "",
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
     };
   },
 
@@ -2209,8 +2510,8 @@ export const LeaveGroupRequest: MessageFns<LeaveGroupRequest> = {
     if (message.groupId !== "") {
       obj.groupId = message.groupId;
     }
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.authId !== "") {
+      obj.authId = message.authId;
     }
     return obj;
   },
@@ -2221,13 +2522,13 @@ export const LeaveGroupRequest: MessageFns<LeaveGroupRequest> = {
   fromPartial<I extends Exact<DeepPartial<LeaveGroupRequest>, I>>(object: I): LeaveGroupRequest {
     const message = createBaseLeaveGroupRequest();
     message.groupId = object.groupId ?? "";
-    message.userId = object.userId ?? "";
+    message.authId = object.authId ?? "";
     return message;
   },
 };
 
 function createBaseLeaveGroupResponse(): LeaveGroupResponse {
-  return { success: false, message: "" };
+  return { success: false, message: "", status: 0 };
 }
 
 export const LeaveGroupResponse: MessageFns<LeaveGroupResponse> = {
@@ -2237,6 +2538,9 @@ export const LeaveGroupResponse: MessageFns<LeaveGroupResponse> = {
     }
     if (message.message !== "") {
       writer.uint32(18).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(24).int32(message.status);
     }
     return writer;
   },
@@ -2264,6 +2568,14 @@ export const LeaveGroupResponse: MessageFns<LeaveGroupResponse> = {
           message.message = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2277,6 +2589,7 @@ export const LeaveGroupResponse: MessageFns<LeaveGroupResponse> = {
     return {
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -2288,6 +2601,9 @@ export const LeaveGroupResponse: MessageFns<LeaveGroupResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -2298,18 +2614,47 @@ export const LeaveGroupResponse: MessageFns<LeaveGroupResponse> = {
     const message = createBaseLeaveGroupResponse();
     message.success = object.success ?? false;
     message.message = object.message ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
 
 export type UserService = typeof UserService;
 export const UserService = {
+  healthCheck: {
+    path: "/user.User/HealthCheck" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: HealthCheckRequest): Buffer => Buffer.from(HealthCheckRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): HealthCheckRequest => HealthCheckRequest.decode(value),
+    responseSerialize: (value: HealthCheckResponse): Buffer => Buffer.from(HealthCheckResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): HealthCheckResponse => HealthCheckResponse.decode(value),
+  },
   getUser: {
     path: "/user.User/GetUser" as const,
     requestStream: false as const,
     responseStream: false as const,
     requestSerialize: (value: GetUserRequest): Buffer => Buffer.from(GetUserRequest.encode(value).finish()),
     requestDeserialize: (value: Buffer): GetUserRequest => GetUserRequest.decode(value),
+    responseSerialize: (value: GetUserResponse): Buffer => Buffer.from(GetUserResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GetUserResponse => GetUserResponse.decode(value),
+  },
+  getUserByPhone: {
+    path: "/user.User/GetUserByPhone" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: GetUserByPhoneRequest): Buffer =>
+      Buffer.from(GetUserByPhoneRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GetUserByPhoneRequest => GetUserByPhoneRequest.decode(value),
+    responseSerialize: (value: GetUserResponse): Buffer => Buffer.from(GetUserResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GetUserResponse => GetUserResponse.decode(value),
+  },
+  getUserById: {
+    path: "/user.User/GetUserById" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: GetUserByIdRequest): Buffer => Buffer.from(GetUserByIdRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GetUserByIdRequest => GetUserByIdRequest.decode(value),
     responseSerialize: (value: GetUserResponse): Buffer => Buffer.from(GetUserResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer): GetUserResponse => GetUserResponse.decode(value),
   },
@@ -2402,7 +2747,10 @@ export const UserService = {
 } as const;
 
 export interface UserServer extends UntypedServiceImplementation {
+  healthCheck: handleUnaryCall<HealthCheckRequest, HealthCheckResponse>;
   getUser: handleUnaryCall<GetUserRequest, GetUserResponse>;
+  getUserByPhone: handleUnaryCall<GetUserByPhoneRequest, GetUserResponse>;
+  getUserById: handleUnaryCall<GetUserByIdRequest, GetUserResponse>;
   getUsers: handleUnaryCall<GetUsersRequest, GetUsersResponse>;
   createUser: handleUnaryCall<CreateUserRequest, CreateUserResponse>;
   updateUser: handleUnaryCall<UpdateUserRequest, UpdateUserResponse>;
@@ -2415,6 +2763,21 @@ export interface UserServer extends UntypedServiceImplementation {
 }
 
 export interface UserClient extends Client {
+  healthCheck(
+    request: HealthCheckRequest,
+    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+  ): ClientUnaryCall;
+  healthCheck(
+    request: HealthCheckRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+  ): ClientUnaryCall;
+  healthCheck(
+    request: HealthCheckRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+  ): ClientUnaryCall;
   getUser(
     request: GetUserRequest,
     callback: (error: ServiceError | null, response: GetUserResponse) => void,
@@ -2426,6 +2789,36 @@ export interface UserClient extends Client {
   ): ClientUnaryCall;
   getUser(
     request: GetUserRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: GetUserResponse) => void,
+  ): ClientUnaryCall;
+  getUserByPhone(
+    request: GetUserByPhoneRequest,
+    callback: (error: ServiceError | null, response: GetUserResponse) => void,
+  ): ClientUnaryCall;
+  getUserByPhone(
+    request: GetUserByPhoneRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: GetUserResponse) => void,
+  ): ClientUnaryCall;
+  getUserByPhone(
+    request: GetUserByPhoneRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: GetUserResponse) => void,
+  ): ClientUnaryCall;
+  getUserById(
+    request: GetUserByIdRequest,
+    callback: (error: ServiceError | null, response: GetUserResponse) => void,
+  ): ClientUnaryCall;
+  getUserById(
+    request: GetUserByIdRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: GetUserResponse) => void,
+  ): ClientUnaryCall;
+  getUserById(
+    request: GetUserByIdRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: GetUserResponse) => void,

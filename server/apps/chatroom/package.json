@@ -20,9 +20,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@m8a/nestjs-typegoose": "^12.0.1",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
     "@nestjs/microservices": "^11.1.16",
+    "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^11.0.1",
     "@typegoose/typegoose": "^13.2.1",
     "@yapper/types": "workspace:*",
@@ -30,6 +33,7 @@
     "class-transformer": "~0.5.1",
     "dotenv": "^17.3.1",
     "kafkajs": "^2.2.4",
+    "lru-cache": "^11.3.3",
     "mongoose": "^9.3.0",
     "prisma": "^7.4.2",
     "reflect-metadata": "^0.2.2",

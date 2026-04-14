@@ -4,6 +4,7 @@ import {
   CreateUserRequest,
   UpdateUserRequest,
   GetUserRequest,
+  GetUsersRequest,
 } from '@yapper/types';
 import { GrpcMethod } from '@nestjs/microservices';
 
@@ -11,17 +12,22 @@ import { GrpcMethod } from '@nestjs/microservices';
 export class UserController {
   constructor(private readonly service: UserService) {}
   @GrpcMethod('User', 'CreateUser')
-  async createGroup(payload: CreateUserRequest) {
+  async createUser(payload: CreateUserRequest) {
     return await this.service.createUser(payload);
   }
 
   @GrpcMethod('User', 'UpdateUser')
-  async updateGroup(payload: UpdateUserRequest) {
+  async updateUser(payload: UpdateUserRequest) {
     return await this.service.updateUser(payload);
   }
 
-  @GrpcMethod('User', 'GetUserRequest')
-  async addGroupMember(payload: GetUserRequest) {
+  @GrpcMethod('User', 'GetUser')
+  async getUser(payload: GetUserRequest) {
     return await this.service.getUser(payload);
+  }
+
+  @GrpcMethod('User', 'GetUsers')
+  async getUsers(payload: GetUsersRequest) {
+    return await this.service.getUsers(payload);
   }
 }

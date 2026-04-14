@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package message;
+
+import "common.proto";
+
+service Message {
+ rpc HealthCheck (common.HealthCheckRequest) returns (common.HealthCheckResponse);
+  rpc GetMessages (GetMessageRequest) returns (GetMessageResponse);
+}
+
+message GetMessageRequest {
+  string chatroom = 1;
+}
+
+message MessageAttachment {
+  string url = 1;
+  string filename = 2;
+  int64 filesize = 3; 
+}
+
+enum MessageType {
+  GENERAL = 0;
+  INFO = 1;
+}
+
+message MessagePayload {
+  string publicId = 1;
+  MessageType type = 2;
+  repeated MessageAttachment attachments = 3;
+  optional string text = 4;
+  repeated string seen = 5;
+  repeated string received = 6;
+  bool isUpdated = 7;
+  bool isStarred = 8;
+  bool isPinned = 9;
+  string chatroomId=10;
+  string createdAt=11;
+  string updatedAt=12;
+  string by=13;
+}
+
+message GetMessageResponse {
+  string message = 1;
+  bool success = 2;
+  int32 status = 3;
+  repeated MessagePayload data = 4;
+}

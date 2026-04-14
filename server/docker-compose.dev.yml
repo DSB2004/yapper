@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   kafka:
     image: apache/kafka:latest
@@ -35,24 +34,27 @@ services:
 
   redis:
     image: redis
-    container_name: yapper_redis
+    container_name: yapper_redis_v1
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redis_data_yapper_v1:/data
   mongodb:
     image: mongo:7
-    container_name: mongodb
+    container_name: yapper_mongodb
     restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: 12345678
-    volumes:
-      - mongo_data:/data/db
     ports:
       - "27017:27017"
+    volumes:
+      - mongo_data_v1:/data/db
+      - mongo_config:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin1234
+      MONGO_INITDB_DATABASE: yapper_chatroom_db
 
 volumes:
   postgres_data:
-  redis_data:
-  mongo_data:
+  redis_data_yapper_v1:
+  mongo_data_v1:
+  mongo_config:

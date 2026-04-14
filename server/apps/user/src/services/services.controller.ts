@@ -4,7 +4,7 @@ import { HealthCheckResponse } from '@yapper/types';
 
 @Controller()
 export class ServicesController {
-  @GrpcMethod('User')
+  @GrpcMethod('User', 'HealthCheck')
   async healthCheck(): Promise<HealthCheckResponse> {
     return {
       status: 200,

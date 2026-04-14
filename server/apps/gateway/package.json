@@ -22,9 +22,19 @@
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/microservices": "^11.1.18",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.18",
+    "@nestjs/websockets": "^11.1.18",
+    "@typegoose/typegoose": "^13.2.1",
+    "@yapper/types": "workspace:*",
+    "@yapper/utils": "workspace:*",
+    "ioredis": "^5.10.1",
+    "kafkajs": "^2.2.4",
+    "lru-cache": "^11.3.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

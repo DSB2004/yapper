@@ -14,7 +14,7 @@ export class User implements OnModuleInit {
   @Client({
     transport: Transport.GRPC,
     options: {
-      url: process.env.USER_SERVICE_URL || 'localhost:50051',
+      url: process.env.USER_SERVICE_URL || 'localhost:50052',
       package: 'user',
       protoPath: join(process.cwd(), '../../proto/user.proto'),
     },

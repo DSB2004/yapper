@@ -2,12 +2,15 @@ syntax = "proto3";
 
 package auth;
 
+import "common.proto";
+
+
 service Auth {
   rpc LoginUser (LoginRequest) returns (LoginResponse);
   rpc VerifyUser (VerifyRequest) returns (VerifyResponse);
   rpc ResendOtp (ResendOtpRequest) returns (ResendOtpResponse);
   rpc ValidateUser (ValidateUserRequest) returns (ValidateUserResponse);
-  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+ rpc HealthCheck (common.HealthCheckRequest) returns (common.HealthCheckResponse);
 }
 
 message LoginRequest {
@@ -53,11 +56,12 @@ message ValidateUserResponse {
   bool success = 2;
   int32 status = 3;
 
-  optional string accessToken = 4;
-  optional string refreshToken = 5;
+  string accessToken = 4;
+  string refreshToken = 5;
 
   optional string authId = 6;
   optional string phone = 7;
+
 
 }
 

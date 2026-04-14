@@ -18,17 +18,18 @@ import {
   type ServiceError,
   type UntypedServiceImplementation,
 } from "@grpc/grpc-js";
-import { MessageSummary, UserDetails } from "./common";
+import { HealthCheckRequest, HealthCheckResponse, MessageSummary, UserDetails } from "./common";
 
 export const protobufPackage = "chatroom";
 
-export interface HealthCheckRequest {
+export interface GetChatroomIdsRequest {
+  userId: string;
 }
 
-export interface HealthCheckResponse {
+export interface GetChatroomIdsResponse {
   message: string;
   success: boolean;
-  status: number;
+  chatrooms: string[];
 }
 
 export interface GetChatroomsRequest {
@@ -42,12 +43,16 @@ export interface ChatroomSummary {
   name?: string | undefined;
   description?: string | undefined;
   icon?: string | undefined;
+  type: string;
+  referenceId: string;
+  createdAt: string;
 }
 
 export interface GetChatroomsResponse {
   message: string;
   success: boolean;
   chats: ChatroomSummary[];
+  status: number;
 }
 
 export interface GetChatroomRequest {
@@ -69,6 +74,8 @@ export interface GetChatroomResponse {
   message: string;
   success: boolean;
   isActive: boolean;
+  status: number;
+  referenceId: string;
 }
 
 export interface CreateChatroomRequest {
@@ -78,30 +85,43 @@ export interface CreateChatroomRequest {
   description?: string | undefined;
   icon?: string | undefined;
   type: string;
+  referenceId: string;
 }
 
 export interface CreateChatroomResponse {
   message: string;
   success: boolean;
   chatroomId: string;
+  status: number;
 }
 
-function createBaseHealthCheckRequest(): HealthCheckRequest {
-  return {};
+function createBaseGetChatroomIdsRequest(): GetChatroomIdsRequest {
+  return { userId: "" };
 }
 
-export const HealthCheckRequest: MessageFns<HealthCheckRequest> = {
-  encode(_: HealthCheckRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const GetChatroomIdsRequest: MessageFns<GetChatroomIdsRequest> = {
+  encode(message: GetChatroomIdsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): HealthCheckRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): GetChatroomIdsRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHealthCheckRequest();
+    const message = createBaseGetChatroomIdsRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -111,46 +131,50 @@ export const HealthCheckRequest: MessageFns<HealthCheckRequest> = {
     return message;
   },
 
-  fromJSON(_: any): HealthCheckRequest {
-    return {};
+  fromJSON(object: any): GetChatroomIdsRequest {
+    return { userId: isSet(object.userId) ? globalThis.String(object.userId) : "" };
   },
 
-  toJSON(_: HealthCheckRequest): unknown {
+  toJSON(message: GetChatroomIdsRequest): unknown {
     const obj: any = {};
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HealthCheckRequest>, I>>(base?: I): HealthCheckRequest {
-    return HealthCheckRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetChatroomIdsRequest>, I>>(base?: I): GetChatroomIdsRequest {
+    return GetChatroomIdsRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HealthCheckRequest>, I>>(_: I): HealthCheckRequest {
-    const message = createBaseHealthCheckRequest();
+  fromPartial<I extends Exact<DeepPartial<GetChatroomIdsRequest>, I>>(object: I): GetChatroomIdsRequest {
+    const message = createBaseGetChatroomIdsRequest();
+    message.userId = object.userId ?? "";
     return message;
   },
 };
 
-function createBaseHealthCheckResponse(): HealthCheckResponse {
-  return { message: "", success: false, status: 0 };
+function createBaseGetChatroomIdsResponse(): GetChatroomIdsResponse {
+  return { message: "", success: false, chatrooms: [] };
 }
 
-export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
-  encode(message: HealthCheckResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const GetChatroomIdsResponse: MessageFns<GetChatroomIdsResponse> = {
+  encode(message: GetChatroomIdsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
     if (message.success !== false) {
       writer.uint32(16).bool(message.success);
     }
-    if (message.status !== 0) {
-      writer.uint32(24).int32(message.status);
+    for (const v of message.chatrooms) {
+      writer.uint32(26).string(v!);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): HealthCheckResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): GetChatroomIdsResponse {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHealthCheckResponse();
+    const message = createBaseGetChatroomIdsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -171,11 +195,11 @@ export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
           continue;
         }
         case 3: {
-          if (tag !== 24) {
+          if (tag !== 26) {
             break;
           }
 
-          message.status = reader.int32();
+          message.chatrooms.push(reader.string());
           continue;
         }
       }
@@ -187,15 +211,17 @@ export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
     return message;
   },
 
-  fromJSON(object: any): HealthCheckResponse {
+  fromJSON(object: any): GetChatroomIdsResponse {
     return {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
+      chatrooms: globalThis.Array.isArray(object?.chatrooms)
+        ? object.chatrooms.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
-  toJSON(message: HealthCheckResponse): unknown {
+  toJSON(message: GetChatroomIdsResponse): unknown {
     const obj: any = {};
     if (message.message !== "") {
       obj.message = message.message;
@@ -203,20 +229,20 @@ export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
     if (message.success !== false) {
       obj.success = message.success;
     }
-    if (message.status !== 0) {
-      obj.status = Math.round(message.status);
+    if (message.chatrooms?.length) {
+      obj.chatrooms = message.chatrooms;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HealthCheckResponse>, I>>(base?: I): HealthCheckResponse {
-    return HealthCheckResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetChatroomIdsResponse>, I>>(base?: I): GetChatroomIdsResponse {
+    return GetChatroomIdsResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HealthCheckResponse>, I>>(object: I): HealthCheckResponse {
-    const message = createBaseHealthCheckResponse();
+  fromPartial<I extends Exact<DeepPartial<GetChatroomIdsResponse>, I>>(object: I): GetChatroomIdsResponse {
+    const message = createBaseGetChatroomIdsResponse();
     message.message = object.message ?? "";
     message.success = object.success ?? false;
-    message.status = object.status ?? 0;
+    message.chatrooms = object.chatrooms?.map((e) => e) || [];
     return message;
   },
 };
@@ -287,6 +313,9 @@ function createBaseChatroomSummary(): ChatroomSummary {
     name: undefined,
     description: undefined,
     icon: undefined,
+    type: "",
+    referenceId: "",
+    createdAt: "",
   };
 }
 
@@ -309,6 +338,15 @@ export const ChatroomSummary: MessageFns<ChatroomSummary> = {
     }
     if (message.icon !== undefined) {
       writer.uint32(50).string(message.icon);
+    }
+    if (message.type !== "") {
+      writer.uint32(58).string(message.type);
+    }
+    if (message.referenceId !== "") {
+      writer.uint32(66).string(message.referenceId);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(74).string(message.createdAt);
     }
     return writer;
   },
@@ -368,6 +406,30 @@ export const ChatroomSummary: MessageFns<ChatroomSummary> = {
           message.icon = reader.string();
           continue;
         }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.referenceId = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -387,6 +449,9 @@ export const ChatroomSummary: MessageFns<ChatroomSummary> = {
       name: isSet(object.name) ? globalThis.String(object.name) : undefined,
       description: isSet(object.description) ? globalThis.String(object.description) : undefined,
       icon: isSet(object.icon) ? globalThis.String(object.icon) : undefined,
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      referenceId: isSet(object.referenceId) ? globalThis.String(object.referenceId) : "",
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
     };
   },
 
@@ -410,6 +475,15 @@ export const ChatroomSummary: MessageFns<ChatroomSummary> = {
     if (message.icon !== undefined) {
       obj.icon = message.icon;
     }
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
+    if (message.referenceId !== "") {
+      obj.referenceId = message.referenceId;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
     return obj;
   },
 
@@ -426,12 +500,15 @@ export const ChatroomSummary: MessageFns<ChatroomSummary> = {
     message.name = object.name ?? undefined;
     message.description = object.description ?? undefined;
     message.icon = object.icon ?? undefined;
+    message.type = object.type ?? "";
+    message.referenceId = object.referenceId ?? "";
+    message.createdAt = object.createdAt ?? "";
     return message;
   },
 };
 
 function createBaseGetChatroomsResponse(): GetChatroomsResponse {
-  return { message: "", success: false, chats: [] };
+  return { message: "", success: false, chats: [], status: 0 };
 }
 
 export const GetChatroomsResponse: MessageFns<GetChatroomsResponse> = {
@@ -444,6 +521,9 @@ export const GetChatroomsResponse: MessageFns<GetChatroomsResponse> = {
     }
     for (const v of message.chats) {
       ChatroomSummary.encode(v!, writer.uint32(26).fork()).join();
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
     }
     return writer;
   },
@@ -479,6 +559,14 @@ export const GetChatroomsResponse: MessageFns<GetChatroomsResponse> = {
           message.chats.push(ChatroomSummary.decode(reader, reader.uint32()));
           continue;
         }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -493,6 +581,7 @@ export const GetChatroomsResponse: MessageFns<GetChatroomsResponse> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       chats: globalThis.Array.isArray(object?.chats) ? object.chats.map((e: any) => ChatroomSummary.fromJSON(e)) : [],
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -507,6 +596,9 @@ export const GetChatroomsResponse: MessageFns<GetChatroomsResponse> = {
     if (message.chats?.length) {
       obj.chats = message.chats.map((e) => ChatroomSummary.toJSON(e));
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -518,6 +610,7 @@ export const GetChatroomsResponse: MessageFns<GetChatroomsResponse> = {
     message.message = object.message ?? "";
     message.success = object.success ?? false;
     message.chats = object.chats?.map((e) => ChatroomSummary.fromPartial(e)) || [];
+    message.status = object.status ?? 0;
     return message;
   },
 };
@@ -596,6 +689,8 @@ function createBaseGetChatroomResponse(): GetChatroomResponse {
     message: "",
     success: false,
     isActive: false,
+    status: 0,
+    referenceId: "",
   };
 }
 
@@ -642,6 +737,12 @@ export const GetChatroomResponse: MessageFns<GetChatroomResponse> = {
     }
     if (message.isActive !== false) {
       writer.uint32(112).bool(message.isActive);
+    }
+    if (message.status !== 0) {
+      writer.uint32(120).int32(message.status);
+    }
+    if (message.referenceId !== "") {
+      writer.uint32(130).string(message.referenceId);
     }
     return writer;
   },
@@ -765,6 +866,22 @@ export const GetChatroomResponse: MessageFns<GetChatroomResponse> = {
           message.isActive = reader.bool();
           continue;
         }
+        case 15: {
+          if (tag !== 120) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
+        case 16: {
+          if (tag !== 130) {
+            break;
+          }
+
+          message.referenceId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -792,6 +909,8 @@ export const GetChatroomResponse: MessageFns<GetChatroomResponse> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
+      referenceId: isSet(object.referenceId) ? globalThis.String(object.referenceId) : "",
     };
   },
 
@@ -839,6 +958,12 @@ export const GetChatroomResponse: MessageFns<GetChatroomResponse> = {
     if (message.isActive !== false) {
       obj.isActive = message.isActive;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
+    if (message.referenceId !== "") {
+      obj.referenceId = message.referenceId;
+    }
     return obj;
   },
 
@@ -867,12 +992,22 @@ export const GetChatroomResponse: MessageFns<GetChatroomResponse> = {
     message.message = object.message ?? "";
     message.success = object.success ?? false;
     message.isActive = object.isActive ?? false;
+    message.status = object.status ?? 0;
+    message.referenceId = object.referenceId ?? "";
     return message;
   },
 };
 
 function createBaseCreateChatroomRequest(): CreateChatroomRequest {
-  return { participants: [], createdBy: "", name: undefined, description: undefined, icon: undefined, type: "" };
+  return {
+    participants: [],
+    createdBy: "",
+    name: undefined,
+    description: undefined,
+    icon: undefined,
+    type: "",
+    referenceId: "",
+  };
 }
 
 export const CreateChatroomRequest: MessageFns<CreateChatroomRequest> = {
@@ -894,6 +1029,9 @@ export const CreateChatroomRequest: MessageFns<CreateChatroomRequest> = {
     }
     if (message.type !== "") {
       writer.uint32(50).string(message.type);
+    }
+    if (message.referenceId !== "") {
+      writer.uint32(58).string(message.referenceId);
     }
     return writer;
   },
@@ -953,6 +1091,14 @@ export const CreateChatroomRequest: MessageFns<CreateChatroomRequest> = {
           message.type = reader.string();
           continue;
         }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.referenceId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -972,6 +1118,7 @@ export const CreateChatroomRequest: MessageFns<CreateChatroomRequest> = {
       description: isSet(object.description) ? globalThis.String(object.description) : undefined,
       icon: isSet(object.icon) ? globalThis.String(object.icon) : undefined,
       type: isSet(object.type) ? globalThis.String(object.type) : "",
+      referenceId: isSet(object.referenceId) ? globalThis.String(object.referenceId) : "",
     };
   },
 
@@ -995,6 +1142,9 @@ export const CreateChatroomRequest: MessageFns<CreateChatroomRequest> = {
     if (message.type !== "") {
       obj.type = message.type;
     }
+    if (message.referenceId !== "") {
+      obj.referenceId = message.referenceId;
+    }
     return obj;
   },
 
@@ -1009,12 +1159,13 @@ export const CreateChatroomRequest: MessageFns<CreateChatroomRequest> = {
     message.description = object.description ?? undefined;
     message.icon = object.icon ?? undefined;
     message.type = object.type ?? "";
+    message.referenceId = object.referenceId ?? "";
     return message;
   },
 };
 
 function createBaseCreateChatroomResponse(): CreateChatroomResponse {
-  return { message: "", success: false, chatroomId: "" };
+  return { message: "", success: false, chatroomId: "", status: 0 };
 }
 
 export const CreateChatroomResponse: MessageFns<CreateChatroomResponse> = {
@@ -1027,6 +1178,9 @@ export const CreateChatroomResponse: MessageFns<CreateChatroomResponse> = {
     }
     if (message.chatroomId !== "") {
       writer.uint32(26).string(message.chatroomId);
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
     }
     return writer;
   },
@@ -1062,6 +1216,14 @@ export const CreateChatroomResponse: MessageFns<CreateChatroomResponse> = {
           message.chatroomId = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1076,6 +1238,7 @@ export const CreateChatroomResponse: MessageFns<CreateChatroomResponse> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
     };
   },
 
@@ -1090,6 +1253,9 @@ export const CreateChatroomResponse: MessageFns<CreateChatroomResponse> = {
     if (message.chatroomId !== "") {
       obj.chatroomId = message.chatroomId;
     }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
     return obj;
   },
 
@@ -1101,14 +1267,15 @@ export const CreateChatroomResponse: MessageFns<CreateChatroomResponse> = {
     message.message = object.message ?? "";
     message.success = object.success ?? false;
     message.chatroomId = object.chatroomId ?? "";
+    message.status = object.status ?? 0;
     return message;
   },
 };
 
-export type UserService = typeof UserService;
-export const UserService = {
+export type ChatroomService = typeof ChatroomService;
+export const ChatroomService = {
   healthCheck: {
-    path: "/chatroom.User/HealthCheck" as const,
+    path: "/chatroom.Chatroom/HealthCheck" as const,
     requestStream: false as const,
     responseStream: false as const,
     requestSerialize: (value: HealthCheckRequest): Buffer => Buffer.from(HealthCheckRequest.encode(value).finish()),
@@ -1117,7 +1284,7 @@ export const UserService = {
     responseDeserialize: (value: Buffer): HealthCheckResponse => HealthCheckResponse.decode(value),
   },
   getChatrooms: {
-    path: "/chatroom.User/GetChatrooms" as const,
+    path: "/chatroom.Chatroom/GetChatrooms" as const,
     requestStream: false as const,
     responseStream: false as const,
     requestSerialize: (value: GetChatroomsRequest): Buffer => Buffer.from(GetChatroomsRequest.encode(value).finish()),
@@ -1127,7 +1294,7 @@ export const UserService = {
     responseDeserialize: (value: Buffer): GetChatroomsResponse => GetChatroomsResponse.decode(value),
   },
   getChatroom: {
-    path: "/chatroom.User/GetChatroom" as const,
+    path: "/chatroom.Chatroom/GetChatroom" as const,
     requestStream: false as const,
     responseStream: false as const,
     requestSerialize: (value: GetChatroomRequest): Buffer => Buffer.from(GetChatroomRequest.encode(value).finish()),
@@ -1136,7 +1303,7 @@ export const UserService = {
     responseDeserialize: (value: Buffer): GetChatroomResponse => GetChatroomResponse.decode(value),
   },
   createChatroom: {
-    path: "/chatroom.User/CreateChatroom" as const,
+    path: "/chatroom.Chatroom/CreateChatroom" as const,
     requestStream: false as const,
     responseStream: false as const,
     requestSerialize: (value: CreateChatroomRequest): Buffer =>
@@ -1146,16 +1313,28 @@ export const UserService = {
       Buffer.from(CreateChatroomResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer): CreateChatroomResponse => CreateChatroomResponse.decode(value),
   },
+  getChatroomIds: {
+    path: "/chatroom.Chatroom/GetChatroomIds" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: GetChatroomIdsRequest): Buffer =>
+      Buffer.from(GetChatroomIdsRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GetChatroomIdsRequest => GetChatroomIdsRequest.decode(value),
+    responseSerialize: (value: GetChatroomIdsResponse): Buffer =>
+      Buffer.from(GetChatroomIdsResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GetChatroomIdsResponse => GetChatroomIdsResponse.decode(value),
+  },
 } as const;
 
-export interface UserServer extends UntypedServiceImplementation {
+export interface ChatroomServer extends UntypedServiceImplementation {
   healthCheck: handleUnaryCall<HealthCheckRequest, HealthCheckResponse>;
   getChatrooms: handleUnaryCall<GetChatroomsRequest, GetChatroomsResponse>;
   getChatroom: handleUnaryCall<GetChatroomRequest, GetChatroomResponse>;
   createChatroom: handleUnaryCall<CreateChatroomRequest, CreateChatroomResponse>;
+  getChatroomIds: handleUnaryCall<GetChatroomIdsRequest, GetChatroomIdsResponse>;
 }
 
-export interface UserClient extends Client {
+export interface ChatroomClient extends Client {
   healthCheck(
     request: HealthCheckRequest,
     callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
@@ -1215,12 +1394,27 @@ export interface UserClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: CreateChatroomResponse) => void,
+  ): ClientUnaryCall;
+  getChatroomIds(
+    request: GetChatroomIdsRequest,
+    callback: (error: ServiceError | null, response: GetChatroomIdsResponse) => void,
+  ): ClientUnaryCall;
+  getChatroomIds(
+    request: GetChatroomIdsRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: GetChatroomIdsResponse) => void,
+  ): ClientUnaryCall;
+  getChatroomIds(
+    request: GetChatroomIdsRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: GetChatroomIdsResponse) => void,
   ): ClientUnaryCall;
 }
 
-export const UserClient = makeGenericClientConstructor(UserService, "chatroom.User") as unknown as {
-  new (address: string, credentials: ChannelCredentials, options?: Partial<ClientOptions>): UserClient;
-  service: typeof UserService;
+export const ChatroomClient = makeGenericClientConstructor(ChatroomService, "chatroom.Chatroom") as unknown as {
+  new (address: string, credentials: ChannelCredentials, options?: Partial<ClientOptions>): ChatroomClient;
+  service: typeof ChatroomService;
   serviceName: string;
 };
 

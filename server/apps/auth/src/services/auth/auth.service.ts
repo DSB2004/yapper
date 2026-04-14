@@ -36,12 +36,13 @@ export class AuthService {
       });
 
       const { message, success } = await this.otp.sendOTP({ phone });
-
+      
       return {
         message,
         success,
         status: success ? 200 : 400,
       };
+      
     } catch {
       return {
         status: 500,
@@ -152,6 +153,8 @@ export class AuthService {
 
       if (!decoded)
         return {
+          accessToken: '',
+          refreshToken: '',
           status: 401,
           success: false,
           message: 'Session expired. Please login',
@@ -163,6 +166,8 @@ export class AuthService {
 
       if (!user) {
         return {
+          accessToken: '',
+          refreshToken: '',
           status: 404,
           success: false,
           message: 'User not found',
@@ -195,6 +200,8 @@ export class AuthService {
       };
     } catch {
       return {
+        accessToken: '',
+        refreshToken: '',
         status: 500,
         success: false,
         message: 'Internal Server Error',

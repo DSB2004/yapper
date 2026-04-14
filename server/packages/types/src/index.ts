@@ -30,7 +30,10 @@ export {
   RemoveGroupMemberResponse,
   LeaveGroupRequest,
   LeaveGroupResponse,
-  GetUsersRequest,GetUsersResponse
+  GetUsersRequest,
+  GetUsersResponse,
+  GetUserByIdRequest,
+  GetUserByPhoneRequest,
 } from "./generated/user";
 
 export { UserDetails, MessageSummary } from "./generated/common";
@@ -41,6 +44,18 @@ export {
   GetChatroomResponse,
   GetChatroomsRequest,
   GetChatroomsResponse,
+  GetChatroomIdsRequest,
+  GetChatroomIdsResponse,
 } from "./generated/chatroom";
-export * from "./auth";
+
+export {
+  GetMessageRequest,
+  GetMessageResponse,
+  MessageType,
+} from "./generated/message";
+
+export * from "./types";
+export * from "./constants";
 export * from "./kafka";
+
+export * from "./socket";

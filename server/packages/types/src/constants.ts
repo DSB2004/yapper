@@ -1,0 +1,7 @@
+
+enum CHATROOM_TYPE {
+  PERSONAL = "PERSONAL",
+  GROUP = "GROUP",
+}
+
+export { CHATROOM_TYPE };
