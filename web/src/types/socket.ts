@@ -35,6 +35,7 @@ export interface MessageAttachment {
   filesize: number;
 }
 export interface MessagePayload {
+  publicId: string;
   type: "GENERAL" | "INFO";
   attachments: MessageAttachment[];
   text: string;
@@ -44,10 +45,13 @@ interface MESSAGE_SOCKET_PAYLOAD {
   chatroomId: string;
   messageId: string;
 }
-export interface ADD_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {
+export interface ADD_MESSAGE_SOCKET_PAYLOAD {
   message: MessagePayload;
+  chatroomId: string;
   by: string;
+  createdAt: Date;
 }
+
 export interface UPDATE_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {
   message: {
     text: string;

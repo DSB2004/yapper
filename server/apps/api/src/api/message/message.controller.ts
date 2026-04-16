@@ -19,7 +19,9 @@ export class MessageController {
   @Version('1')
   @HttpCode(200)
   async getChatroom(@Param('id') id: string) {
-    const result = await this.service.getMessages({ chatroom: id });
+    console.log(id);
+    let result = await this.service.getMessages({ chatroom: id });
+    if (!result.data) result.data = [];
     return this.util.handleResponse(result);
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@/types/message";
+import { Message, MessageType } from "@/types/message";
 import {
   createContext,
   useContext,
@@ -37,14 +37,31 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
   const { chatroom } = useChatroom();
   const [unreadCount, setCount] = useState<Map<string, number>>(new Map());
   const { socket } = useSocket();
+  const queryClient = useQueryClient();
   useEffect(() => {
     if (!socket) return;
-    const queryClient = useQueryClient();
     const handleAdd = (payload: ADD_MESSAGE_SOCKET_PAYLOAD) => {
-      const { chatroomId, message } = payload;
+      const { chatroomId, message, by, createdAt } = payload;
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
         if (!old) return old;
-        return [...old, message as any];
+        return [
+          ...old,
+          {
+            publicId: message.publicId,
+            type: message.type as unknown as MessageType,
+            attachments: message.attachments,
+            text: message.text ?? undefined,
+            seen: [by],
+            received: [by],
+            isUpdated: false,
+            isStarred: false,
+            isPinned: false,
+            chatroomId,
+            createdAt: createdAt,
+            updatedAt: createdAt,
+            by,
+          } as any,
+        ];
       });
       if (chatroom?.chatroomId !== chatroomId) {
         setCount((prev) => {

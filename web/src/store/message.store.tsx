@@ -40,6 +40,7 @@ function MessageStoreContent({ children }: { children: React.ReactNode }) {
     queryFn: async () => {
       if (!chatroom) return [];
       const res = await getMessages({ chatroomId: chatroom?.chatroomId });
+      console.log(res);
       if (!res.success) {
         toast.error(res.message);
       }

@@ -19,6 +19,7 @@ export class KafkaConsumer implements OnApplicationShutdown {
       // sessionTimeout: 10000,
       // heartbeatInterval: 3000,
     });
+
     await consumer.connect();
     await consumer.subscribe(topic);
     await consumer.run(config);

@@ -26,11 +26,12 @@ export class MessageService {
       const messages = await this.messageRepo.find({
         chatroomId: payload.chatroom,
       });
+      console.log(messages);
       return {
         message: 'Messages for chatroom',
         success: true,
         status: 200,
-        data: messages as any,
+        data: (messages as any) ?? [],
       };
     } catch (err) {
       this.logger.error('Failed to GET message', err);
@@ -51,6 +52,7 @@ export class MessageService {
         text: payload.message.text,
         type: payload.message.type,
         attachments: payload.message.attachments,
+        createdAt: payload.createdAt,
       });
     } catch (err) {
       this.logger.error('Failed to persist ADD message', err);

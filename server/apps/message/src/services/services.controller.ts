@@ -9,7 +9,7 @@ export class ServicesController {
     return {
       status: 200,
       success: true,
-      message: 'Auth Service working fine',
+      message: 'Message Service working fine',
     };
   }
 }

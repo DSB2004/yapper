@@ -4,9 +4,9 @@ import { api } from "@/api/protected.api";
 
 export const getMessages = async ({ chatroomId }: { chatroomId: string }) => {
   try {
-    const res = await api.get("/message", { params: { chatroomId } });
+    const res = await api.get(`/message/${chatroomId}`);
     const data = res.data;
-    return { ...data, messages: data.messages ?? [] };
+    return { ...data, messages: data.data ?? [] };
   } catch (err: any) {
     const { success, message } = err.response.data;
     return {

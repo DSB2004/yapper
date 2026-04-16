@@ -17,6 +17,6 @@ import { SocketsService } from './sockets.service';
     forwardRef(() => CommonModule),
   ],
   providers: [SocketsGateway, Sockets, SocketsService],
-  exports: [SocketsService],
+  exports: [SocketsService, Sockets],
 })
 export class SocketsModule {}

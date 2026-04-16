@@ -28,9 +28,11 @@ export class CommonService {
   }
 
   async leaveChatroom({ userId, chatroomId }: LEAVECHAT_SOCKET_PAYLOAD) {
-    await this.socket.removrUserFromRoom({ userId: userId, room: chatroomId });
+    await this.socket.delUserRoom({ userId: userId, room: chatroomId });
+    await this.socket.removeUserFromRoom({ userId: userId, room: chatroomId });
   }
   async joinChatroom({ userId, chatroomId }: JOIN_SOCKET_PAYLOAD) {
+    await this.socket.upsertUserRoom({ userId: userId, room: chatroomId });
     await this.socket.addUserToRoom({ userId: userId, room: chatroomId });
   }
 }

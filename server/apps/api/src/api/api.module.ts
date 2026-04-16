@@ -9,7 +9,14 @@ import { ChatroomModule } from './chatroom/chatroom.module';
 import { MessageModule } from './message/message.module';
 
 @Module({
-  imports: [AuthModule, UserModule, ContactModule, GroupModule, ChatroomModule, MessageModule],
+  imports: [
+    AuthModule,
+    UserModule,
+    ContactModule,
+    GroupModule,
+    ChatroomModule,
+    MessageModule,
+  ],
 })
 export class ApiModule {
   configure(consumer: MiddlewareConsumer) {

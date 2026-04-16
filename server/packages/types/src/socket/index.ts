@@ -57,13 +57,13 @@ export const SOCKET_EVENTS = {
     JOIN: "socket.common.join",
     LEAVE: "socket.common.leave",
 
-    ONLINE_CLIENT: "socket.common.online",
-    OFFLINE_CLIENT: "socket.common.offline",
-    TYPING_CLIENT: "socket.common.typing",
-    STOP_TYPING_CLIENT: "socket.common.stop-typing",
-    DETAILS_CLIENT: "socket.common.connection-details",
-    JOIN_CLIENT: "socket.common.join",
-    LEAVE_CLIENT: "socket.common.leave",
+    ONLINE_CLIENT: "socket.common.online.client",
+    OFFLINE_CLIENT: "socket.common.offline.client",
+    TYPING_CLIENT: "socket.common.typing.client",
+    STOP_TYPING_CLIENT: "socket.common.stop-typing.client",
+    DETAILS_CLIENT: "socket.common.connection-details.client",
+    JOIN_CLIENT: "socket.common.join.client",
+    LEAVE_CLIENT: "socket.common.leave.client",
   },
   GROUP: {
     ADD: "socket.group.add",
@@ -73,12 +73,12 @@ export const SOCKET_EVENTS = {
     MAKE_ADMIN: "socket.group.make-admin",
     REMOVE_ADMIN: "socket.group.remove-admin",
 
-    ADD_CLIENT: "socket.group.add",
-    REMOVE_CLIENT: "socket.group.remove",
-    LEAVE_CLIENT: "socket.group.leave",
-    UPDATE_CLIENT: "socket.group.update",
-    MAKE_ADMIN_CLIENT: "socket.group.make-admin",
-    REMOVE_ADMIN_CLIENT: "socket.group.remove-admin",
+    ADD_CLIENT: "socket.group.add.client",
+    REMOVE_CLIENT: "socket.group.remove.client",
+    LEAVE_CLIENT: "socket.group.leave.client",
+    UPDATE_CLIENT: "socket.group.update.client",
+    MAKE_ADMIN_CLIENT: "socket.group.make-admin.client",
+    REMOVE_ADMIN_CLIENT: "socket.group.remove-admin.client",
   },
   MESSAGE: {
     ADD: "socket.message.add",
@@ -90,14 +90,14 @@ export const SOCKET_EVENTS = {
     SEEN: "socket.message.seen",
     RECEIVED: "socket.message.received",
 
-    ADD_CLIENT: "socket.message.add",
-    UPDATE_CLIENT: "socket.message.update",
-    DELETE_CLIENT: "socket.message.delete",
-    STAR_CLIENT: "socket.message.star",
-    PIN_CLIENT: "socket.message.pin",
-    REACTION_CLIENT: "socket.message.reaction",
-    SEEN_CLIENT: "socket.message.seen",
-    RECEIVED_CLIENT: "socket.message.received",
+    ADD_CLIENT: "socket.message.add.client",
+    UPDATE_CLIENT: "socket.message.update.client",
+    DELETE_CLIENT: "socket.message.delete.client",
+    STAR_CLIENT: "socket.message.star.client",
+    PIN_CLIENT: "socket.message.pin.client",
+    REACTION_CLIENT: "socket.message.reaction.client",
+    SEEN_CLIENT: "socket.message.seen.client",
+    RECEIVED_CLIENT: "socket.message.received.client",
   },
 } as const;
 
@@ -105,6 +105,7 @@ export interface ADD_MESSAGE_SOCKET_PAYLOAD {
   message: MessagePayload;
   chatroomId: string;
   by: string;
+  createdAt: Date;
 }
 interface MESSAGE_SOCKET_PAYLOAD {
   chatroomId: string;

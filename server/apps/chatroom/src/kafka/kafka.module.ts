@@ -4,5 +4,6 @@ import { KafkaConsumer } from './kafka.consumer';
 
 @Module({
   providers: [KafkaConsumer, KafkaProducer],
+  exports: [KafkaConsumer, KafkaProducer],
 })
 export class KafkaModule {}

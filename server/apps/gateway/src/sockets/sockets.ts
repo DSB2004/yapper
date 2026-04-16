@@ -34,7 +34,6 @@ export class Sockets {
   }
 
   //  to get all the users in a room
-
   async getUsersInRoom(room: string): Promise<string[]> {
     return await redis.smembers(`room:${room}:users`);
   }
@@ -56,33 +55,37 @@ export class Sockets {
     return Array.from(userIds);
   }
 
-  // to get rooms joined by user
+  async getUserAllRooms({ userId }: { userId: string }) {
+    return await redis.smembers(`user:${userId}:rooms`);
+  }
+  async upsertUserRoom({ userId, room }: { userId: string; room: string }) {
+    await redis.sadd(`user:${userId}:rooms`, room);
+  }
+  async delUserRoom({ userId, room }: { userId: string; room: string }) {
+    await redis.srem(`user:${userId}:rooms`, room);
+  }
+
+  // to get active chatroom user part of
   async addUserToRoom({ userId, room }: { userId: string; room: string }) {
     await Promise.all([
-      redis.sadd(`user:${userId}:rooms`, room),
+      redis.set(`user:${userId}:active-room`, room),
       redis.sadd(`room:${room}:users`, userId),
     ]);
   }
   async removeUserFromRoom({ userId, room }: { userId: string; room: string }) {
     await Promise.all([
-      redis.srem(`user:${userId}:rooms`, room),
+      redis.del(`user:${userId}:active-room`, room),
       redis.srem(`room:${room}:users`, userId),
     ]);
   }
-  async delUserRooms({ userId }: { userId: string }) {
-    const rooms = await redis.smembers(`user:${userId}:rooms`);
-
+  async delUserActiveRoom({ userId }: { userId: string }) {
+    const room = await redis.get(`user:${userId}:active-room`);
     const pipeline = redis.multi();
-
-    for (const room of rooms) {
-      pipeline.srem(`room:${room}:users`, userId);
-    }
-
-    pipeline.del(`user:${userId}:rooms`);
-
+    pipeline.del(`user:${userId}:active-room`);
+    pipeline.srem(`room:${room}:users`, userId);
     await pipeline.exec();
   }
-  async getUserRooms({ userId }: { userId: string }) {
-    return await redis.smembers(`user:${userId}:rooms`);
+  async getUserActiveRoom({ userId }: { userId: string }) {
+    return await redis.smembers(`user:${userId}:active-room`);
   }
 }

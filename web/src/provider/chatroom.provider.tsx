@@ -27,6 +27,7 @@ type ChatroomContextType = {
   join: (chatroom: Chatroom) => Promise<void>;
   inChat: Map<string, string[]>;
   online: Set<string>;
+  typing: Map<string, string[]>;
 };
 
 const ChatroomContext = createContext<ChatroomContextType | undefined>(
@@ -37,15 +38,14 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
   const [chatroom, setChatroom] = useState<Chatroom | null>(null);
   const { socket } = useSocket();
   const { data: user } = useUserStore();
-
+  const [typing, setTyping] = useState<Map<string, string[]>>(new Map());
   const [inChat, setInChat] = useState<Map<string, string[]>>(new Map());
   const [online, setOnline] = useState<Set<string>>(new Set());
 
-
   const initializedRef = useRef(false);
 
-  
   const handleJoin = useCallback((payload: JOIN_SOCKET_PAYLOAD) => {
+    console.log("join called", payload);
     if (!initializedRef.current) return;
 
     setInChat((prev) => {
@@ -60,8 +60,48 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const handleTyping = useCallback(
+    (payload: { chatroomId: string; userId: string }) => {
+      if (!initializedRef.current) return;
+
+      setTyping((prev) => {
+        const updated = new Map(prev);
+        const users = updated.get(payload.chatroomId) || [];
+
+        if (!users.includes(payload.userId)) {
+          updated.set(payload.chatroomId, [...users, payload.userId]);
+        }
+
+        return updated;
+      });
+    },
+    [],
+  );
+
+  const handleStopTyping = useCallback(
+    (payload: { chatroomId: string; userId: string }) => {
+      if (!initializedRef.current) return;
+
+      setTyping((prev) => {
+        const updated = new Map(prev);
+        const users = updated.get(payload.chatroomId) || [];
+
+        const filtered = users.filter((id) => id !== payload.userId);
+
+        if (filtered.length > 0) {
+          updated.set(payload.chatroomId, filtered);
+        } else {
+          updated.delete(payload.chatroomId);
+        }
+
+        return updated;
+      });
+    },
+    [],
+  );
 
   const handleLeave = useCallback((payload: LEAVECHAT_SOCKET_PAYLOAD) => {
+    console.log("leave called", payload);
     if (!initializedRef.current) return;
 
     setInChat((prev) => {
@@ -80,16 +120,16 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-
   const handleDetails = useCallback((payload: DETAILS_SOCKET_PAYLOAD) => {
+    console.log("details called", payload);
     setInChat(new Map(Object.entries(payload.inChat)));
     setOnline(new Set(payload.onlineUsers));
 
     initializedRef.current = true;
   }, []);
 
-
   const handleOnline = useCallback((payload: ONLINE_SOCKET_PAYLOAD) => {
+    console.log("online called", payload);
     if (!initializedRef.current) return;
 
     setOnline((prev) => {
@@ -99,25 +139,61 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-
   const handleOffline = useCallback((payload: OFFLINE_SOCKET_PAYLOAD) => {
     if (!initializedRef.current) return;
 
+    const { userId } = payload;
+
+
     setOnline((prev) => {
       const updated = new Set(prev);
-      updated.delete(payload.userId);
+      updated.delete(userId);
+      return updated;
+    });
+
+    setInChat((prev) => {
+      const updated = new Map(prev);
+
+      for (const [roomId, users] of updated.entries()) {
+        const filtered = users.filter((id) => id !== userId);
+
+        if (filtered.length > 0) {
+          updated.set(roomId, filtered);
+        } else {
+          updated.delete(roomId);
+        }
+      }
+
+      return updated;
+    });
+
+    setTyping((prev) => {
+      const updated = new Map(prev);
+
+      for (const [roomId, users] of updated.entries()) {
+        const filtered = users.filter((id) => id !== userId);
+
+        if (filtered.length > 0) {
+          updated.set(roomId, filtered);
+        } else {
+          updated.delete(roomId);
+        }
+      }
+
       return updated;
     });
   }, []);
 
   useEffect(() => {
     if (!socket) return;
-
+    console.log("socket initialized");
     socket.on(SOCKET_EVENTS.COMMON.JOIN_CLIENT, handleJoin);
     socket.on(SOCKET_EVENTS.COMMON.LEAVE_CLIENT, handleLeave);
     socket.on(SOCKET_EVENTS.COMMON.DETAILS_CLIENT, handleDetails);
     socket.on(SOCKET_EVENTS.COMMON.ONLINE_CLIENT, handleOnline);
     socket.on(SOCKET_EVENTS.COMMON.OFFLINE_CLIENT, handleOffline);
+    socket.on(SOCKET_EVENTS.COMMON.TYPING_CLIENT, handleTyping);
+    socket.on(SOCKET_EVENTS.COMMON.STOP_TYPING_CLIENT, handleStopTyping);
 
     return () => {
       socket.off(SOCKET_EVENTS.COMMON.JOIN_CLIENT, handleJoin);
@@ -125,6 +201,8 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
       socket.off(SOCKET_EVENTS.COMMON.DETAILS_CLIENT, handleDetails);
       socket.off(SOCKET_EVENTS.COMMON.ONLINE_CLIENT, handleOnline);
       socket.off(SOCKET_EVENTS.COMMON.OFFLINE_CLIENT, handleOffline);
+      socket.off(SOCKET_EVENTS.COMMON.TYPING_CLIENT, handleTyping);
+      socket.off(SOCKET_EVENTS.COMMON.STOP_TYPING_CLIENT, handleStopTyping);
     };
   }, [
     socket,
@@ -134,7 +212,6 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
     handleOnline,
     handleOffline,
   ]);
-
 
   const join = useCallback(
     async (newChatroom: Chatroom) => {
@@ -158,7 +235,9 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return (
-    <ChatroomContext.Provider value={{ join, chatroom, inChat, online }}>
+    <ChatroomContext.Provider
+      value={{ join, chatroom, inChat, online, typing }}
+    >
       {children}
     </ChatroomContext.Provider>
   );

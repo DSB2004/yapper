@@ -2,19 +2,41 @@ import { useUserStore } from "@/store/user.store";
 import { Chatroom } from "@/types/chatroom";
 import React, { useMemo } from "react";
 import { useChatroom } from "@/provider/chatroom.provider";
+import Time from "../../common/time";
+
 export default function Card({ room }: { room: Chatroom }) {
-  const { join } = useChatroom();
+  const { join, online } = useChatroom();
   const { data: user, isLoading, isFetching } = useUserStore();
   const details = useMemo(() => {
-    if (room.type === "GROUP") return { icon: room.icon, name: room.name };
+    if (room.type === "GROUP")
+      return {
+        icon: room.icon,
+        name: room.name,
+        userId: null,
+        type: room.type,
+        online: false,
+      };
     else {
       const other = room.participants.find(
         (ele) => ele.userId !== user?.userId,
       );
-      if (other) return { icon: other.avatar, name: other.name };
+      if (other)
+        return {
+          icon: other.avatar,
+          name: other.name,
+          userId: other.userId as string,
+          type: room.type,
+          online: online.has(other.userId),
+        };
     }
-    return { icon: room.icon, name: room.name };
-  }, [user, room]);
+    return {
+      icon: room.icon as string,
+      name: room.name as string,
+      userId: null,
+      type: room.type,
+      online: false,
+    };
+  }, [user, room, online]);
 
   return (
     <div
@@ -23,19 +45,22 @@ export default function Card({ room }: { room: Chatroom }) {
       className="flex items-center gap-3 p-3  cursor-pointer transition"
     >
       {/* Avatar */}
-      <img
-        src={details.icon}
-        alt={details.name}
-        className="w-12 h-12 rounded-full object-cover"
-      />
+      <div className="relative">
+        <img
+          src={details.icon}
+          className={` ${details.online ? " border-green-600  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-12 h-12 rounded-full object-cover`}
+        />
+        {/* <div className="absolute z-10 -bottom-0.5 -right-1">
+          <Typing></Typing>
+        </div> */}
+      </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
           <p className="font-medium truncate">{details.name}</p>
           <span className="text-xs text-gray-500">
-            {new Date(room.createdAt).getHours()}:
-            {new Date(room.createdAt).getMinutes()}
+            <Time time={room.createdAt}></Time>
           </span>
         </div>
 

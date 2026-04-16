@@ -2,7 +2,6 @@ import { useChatroomStore } from "@/store/chatroom.store";
 import React from "react";
 import Card, { CardSkeleton } from "./card";
 
-
 export default function Chatroom() {
   const { data, isLoading, isFetching } = useChatroomStore();
 
