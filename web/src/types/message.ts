@@ -13,6 +13,7 @@ export enum MessageType {
 export interface Message {
   publicId: string;
   type: MessageType;
+  reactions: {}[];
   attachments: MessageAttachment[];
   text?: string | undefined;
   seen: string[];

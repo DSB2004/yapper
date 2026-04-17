@@ -144,7 +144,6 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
 
     const { userId } = payload;
 
-
     setOnline((prev) => {
       const updated = new Set(prev);
       updated.delete(userId);
@@ -215,6 +214,7 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
 
   const join = useCallback(
     async (newChatroom: Chatroom) => {
+      console.log(socket, user);
       if (!socket || !user) return;
 
       if (chatroom) {

@@ -4,6 +4,7 @@ import {
   getAccessToken,
   getRefreshToken,
 } from "@/app/actions/auth/cookie.action";
+import { validateUser } from "@/app/actions/auth/validate.action";
 import {
   createContext,
   useContext,
@@ -27,8 +28,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let socketInstance: any = null;
     (async () => {
-      const accessToken = await getAccessToken();
-      const refreshToken = await getRefreshToken();
+      const { accessToken, refreshToken } = await validateUser();
       if (!accessToken || !refreshToken) return;
       socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
         transports: ["websocket"],

@@ -57,8 +57,7 @@ export class SocketsGateway
       userId: user.userId,
     });
     if (activeConnection) {
-      client.disconnect(true);
-      return;
+      await this.socket.delSocketId({ userId: user.userId });
     }
 
     // const userId = client.handshake.headers['user'] as string;

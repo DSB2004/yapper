@@ -26,6 +26,7 @@ import {
 } from "@/types/socket";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useUserStore } from "@/store/user.store";
 
 type MessageContextType = {
   unreadCount: Map<string, number>;
@@ -37,6 +38,7 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
   const { chatroom } = useChatroom();
   const [unreadCount, setCount] = useState<Map<string, number>>(new Map());
   const { socket } = useSocket();
+  const { data: user } = useUserStore();
   const queryClient = useQueryClient();
   useEffect(() => {
     if (!socket) return;
@@ -70,11 +72,18 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
           return newMap;
         });
       }
+      if (!user) return;
+      socket.emit(SOCKET_EVENTS.MESSAGE.RECEIVED, {
+        chatroomId,
+        messageId: message.publicId,
+        receivedBy: user.userId,
+      } as RECEIVED_MESSAGE_SOCKET_PAYLOAD);
     };
 
     const handleUpdate = (payload: UPDATE_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId, message } = payload;
 
+      console.log("called update via event");
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
         if (!old) return old;
 
@@ -89,6 +98,7 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
     const handleDelete = (payload: DELETE_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId } = payload;
 
+      console.log("called delete via event");
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
         if (!old) return old;
         return old.filter((msg) => msg.publicId !== messageId);
