@@ -70,8 +70,8 @@ export default function LoginForm() {
     <div className="w-full my-auto">
       {/* Heading */}
       <div className="space-y-6 mb-10">
-        <h2 className="text-5xl font-bold text-gray-900 ">Log In</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="text-5xl font-bold ">Log In</h2>
+        <p className="text-sm text-muted-foreground mt-1">
           Enter your phone number to continue using <strong>Yapper</strong>
         </p>
       </div>
@@ -93,7 +93,7 @@ export default function LoginForm() {
                 className={`h-12 rounded-md border ${
                   errors.phone
                     ? "border-red-500 focus-visible:ring-red-500"
-                    : "border-gray-300"
+                    : "border"
                 }`}
                 {...register("phone")}
               />

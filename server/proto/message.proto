@@ -19,6 +19,10 @@ message MessageAttachment {
   int64 filesize = 3; 
 }
 
+message MessageReaction {
+  string reaction = 1;
+  string userId = 2; 
+}
 enum MessageType {
   GENERAL = 0;
   INFO = 1;
@@ -34,10 +38,16 @@ message MessagePayload {
   bool isUpdated = 7;
   bool isStarred = 8;
   bool isPinned = 9;
-  string chatroomId=10;
-  string createdAt=11;
-  string updatedAt=12;
-  string by=13;
+  bool isDeleted=10;
+  string chatroomId=11;
+  string createdAt=12;
+  string updatedAt=13;
+  string by=14;
+  repeated string for = 15;
+  repeated MessageReaction reactions=16;
+  bool isForwarded=17;
+  bool isReply=18;
+  optional string replyFor=19;
 }
 
 message GetMessageResponse {

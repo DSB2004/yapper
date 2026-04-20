@@ -46,6 +46,7 @@ export {
   GetChatroomsResponse,
   GetChatroomIdsRequest,
   GetChatroomIdsResponse,
+  LastMessage,
 } from "./generated/chatroom";
 
 export {

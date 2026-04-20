@@ -31,7 +31,7 @@ function UserStoreContent({ children }: { children: React.ReactNode }) {
       if (!res.success) {
         toast.error(res.message);
       }
-
+      console.log("user ready", res.user);
       return res.user;
     },
     staleTime: 1000 * 60 * 5,

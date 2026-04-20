@@ -39,8 +39,11 @@ export interface MessagePayload {
   type: "GENERAL" | "INFO";
   attachments: MessageAttachment[];
   text: string;
+  for: string[];
+  isReply: boolean;
+  replyFor?: string;
+  isForwarded: boolean;
 }
-
 interface MESSAGE_SOCKET_PAYLOAD {
   chatroomId: string;
   messageId: string;

@@ -33,7 +33,19 @@ export class Message {
   public isStarred!: boolean;
 
   @prop({ default: false })
+  public isForwarded!: boolean;
+
+  @prop({ default: false })
+  public isReply!: boolean;
+
+  @prop()
+  public replyFor?: string;
+
+  @prop({ default: false })
   public isUpdated!: boolean;
+
+  @prop({ default: false })
+  public isDeleted!: boolean;
 
   @prop({ enum: ['INFO', 'GENERAL'], required: true })
   public type!: 'INFO' | 'GENERAL';
@@ -43,6 +55,9 @@ export class Message {
 
   @prop({ type: () => [String], default: [] })
   public received!: string[];
+
+  @prop({ type: () => [String], default: [] })
+  public for!: string[];
 
   @prop({ type: () => [MessageAttachment], default: [], _id: false })
   public attachments!: MessageAttachment[];

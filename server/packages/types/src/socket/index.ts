@@ -29,24 +29,6 @@ export interface UPDATE_SOCKET_PAYLOAD extends _SOCKET_PAYLOAD {
 export interface MAKE_ADMIN_SOCKET_PAYLOAD extends _SOCKET_PAYLOAD {}
 export interface REMOVE_ADMIN_SOCKET_PAYLOAD extends _SOCKET_PAYLOAD {}
 
-export interface MessageAttachment {
-  url: string;
-  filename: string;
-  filesize: number;
-}
-export interface MessagePayload {
-  publicId: string;
-  type: "GENERAL" | "INFO";
-  attachments: MessageAttachment[];
-  text: string;
-}
-export interface DETAILS_SOCKET_PAYLOAD {
-  onlineUsers: string[];
-  inChat: {
-    [k: string]: string[];
-  };
-}
-
 export const SOCKET_EVENTS = {
   COMMON: {
     ONLINE: "socket.common.online",
@@ -100,7 +82,27 @@ export const SOCKET_EVENTS = {
     RECEIVED_CLIENT: "socket.message.received.client",
   },
 } as const;
-
+export interface MessageAttachment {
+  url: string;
+  filename: string;
+  filesize: number;
+}
+export interface MessagePayload {
+  publicId: string;
+  type: "GENERAL" | "INFO";
+  attachments: MessageAttachment[];
+  text: string;
+  for: string[];
+  isReply: boolean;
+  replyFor?: string;
+  isForwarded: boolean;
+}
+export interface DETAILS_SOCKET_PAYLOAD {
+  onlineUsers: string[];
+  inChat: {
+    [k: string]: string[];
+  };
+}
 export interface ADD_MESSAGE_SOCKET_PAYLOAD {
   message: MessagePayload;
   chatroomId: string;

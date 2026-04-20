@@ -26,7 +26,6 @@ export class MessageService {
       const messages = await this.messageRepo.find({
         chatroomId: payload.chatroom,
       });
-      console.log(messages);
       return {
         message: 'Messages for chatroom',
         success: true,
@@ -49,10 +48,14 @@ export class MessageService {
         publicId: payload.message.publicId,
         chatroomId: payload.chatroomId,
         by: payload.by,
+        isReply: payload.message.isReply,
+        replyFor: payload.message.replyFor,
+        isForwarded: payload.message.isForwarded,
         text: payload.message.text,
         type: payload.message.type,
         attachments: payload.message.attachments,
         createdAt: payload.createdAt,
+        for: payload.message.for,
       });
     } catch (err) {
       this.logger.error('Failed to persist ADD message', err);
@@ -86,10 +89,18 @@ export class MessageService {
         this.logger.warn('Failed to persist PIN message, message not found');
         return;
       }
-      await this.messageRepo.deleteOne({
-        publicId: payload.messageId,
-        chatroomId: payload.chatroomId,
-      });
+      await this.messageRepo.updateOne(
+        {
+          publicId: payload.messageId,
+          chatroomId: payload.chatroomId,
+        },
+        {
+          text: '',
+          attachments: [],
+          reactions: [],
+          isDeleted: true,
+        },
+      );
     } catch (err) {
       this.logger.error('Failed to persist DELETE message', err);
     }

@@ -21,7 +21,7 @@ function _View() {
 export default function View() {
   return (
     <div className="h-screen w-full flex items-center justify-center">
-      <div className="max-w-[1600px] w-[90%] bg-transparent md:bg-white h-[85%]  shadow-none md:shadow-2xl overflow-hidden flex">
+      <div className="max-w-[1600px] w-[90%] bg-transparent md:bg-background h-[85%]  shadow-none md:shadow-2xl rounded-2xl overflow-hidden flex">
         <div className="hidden md:flex w-1/2 bg-linear-to-br from-indigo-500 to-purple-600 items-center justify-center">
           <div className="w-full aspect-4/3 flex items-center justify-center">
             <DotLottieReact

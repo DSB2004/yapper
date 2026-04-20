@@ -89,8 +89,8 @@ export default function VerifyUserForm() {
     <div className="w-full my-auto">
       {/* Heading */}
       <div className="space-y-6 mb-10">
-        <h2 className="text-5xl font-bold text-gray-900 ">Verify</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="text-5xl font-bold ">Verify</h2>
+        <p className="text-sm text-muted-foreground mt-1">
           Enter your <strong>OTP</strong> sent to your phone number for
           verification
         </p>

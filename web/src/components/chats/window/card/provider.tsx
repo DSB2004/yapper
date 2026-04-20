@@ -12,15 +12,13 @@ import React, {
   useRef,
 } from "react";
 import { SOCKET_EVENTS } from "@/constants/socket";
-import {
-  SEEN_MESSAGE_SOCKET_PAYLOAD,
-  RECEIVED_MESSAGE_SOCKET_PAYLOAD,
-} from "@/types/socket";
+import { SEEN_MESSAGE_SOCKET_PAYLOAD } from "@/types/socket";
 type MessageContextType = {
   user: UserDetails;
   msg: Message;
   you: boolean;
   showAvatar: boolean;
+  isDeleted: boolean;
 };
 
 const MessageContext = createContext<MessageContextType | null>(null);
@@ -57,7 +55,7 @@ export default function MessageProviderWrapper({
 
   const showAvatar = useMemo(() => {
     if (!next) return true;
-    return msg.by !== next.by;
+    return msg.by !== next.by || next.isDeleted;
   }, [msg, next]);
 
   const ref = useRef<HTMLDivElement | null>(null);
@@ -87,9 +85,13 @@ export default function MessageProviderWrapper({
 
     return () => observer.disconnect();
   }, [msg, socket, user, room]);
+
+  const isDeleted = useMemo(() => {
+    return msg.isDeleted;
+  }, [msg]);
   return (
     <MessageContext.Provider
-      value={{ user: userDetails, you, msg, showAvatar }}
+      value={{ user: userDetails, isDeleted, you, msg, showAvatar }}
     >
       <div ref={ref}>{children}</div>
     </MessageContext.Provider>

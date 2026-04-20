@@ -18,6 +18,7 @@ import {
   LEAVECHAT_SOCKET_PAYLOAD,
 } from "@/types/socket";
 import { useUserStore } from "@/store/user.store";
+import { Message } from "@/types/message";
 
 type ONLINE_SOCKET_PAYLOAD = { userId: string };
 type OFFLINE_SOCKET_PAYLOAD = { userId: string };
@@ -38,14 +39,14 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
   const [chatroom, setChatroom] = useState<Chatroom | null>(null);
   const { socket } = useSocket();
   const { data: user } = useUserStore();
+
   const [typing, setTyping] = useState<Map<string, string[]>>(new Map());
   const [inChat, setInChat] = useState<Map<string, string[]>>(new Map());
   const [online, setOnline] = useState<Set<string>>(new Set());
-
   const initializedRef = useRef(false);
+  const [pinned, setPinned] = useState<Message[]>([]);
 
   const handleJoin = useCallback((payload: JOIN_SOCKET_PAYLOAD) => {
-    console.log("join called", payload);
     if (!initializedRef.current) return;
 
     setInChat((prev) => {
@@ -62,7 +63,7 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
 
   const handleTyping = useCallback(
     (payload: { chatroomId: string; userId: string }) => {
-      if (!initializedRef.current) return;
+      if (!initializedRef.current || payload.userId === user?.userId) return;
 
       setTyping((prev) => {
         const updated = new Map(prev);
@@ -75,12 +76,12 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
         return updated;
       });
     },
-    [],
+    [user],
   );
 
   const handleStopTyping = useCallback(
     (payload: { chatroomId: string; userId: string }) => {
-      if (!initializedRef.current) return;
+      if (!initializedRef.current || payload.userId === user?.userId) return;
 
       setTyping((prev) => {
         const updated = new Map(prev);
@@ -97,11 +98,10 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
         return updated;
       });
     },
-    [],
+    [user],
   );
 
   const handleLeave = useCallback((payload: LEAVECHAT_SOCKET_PAYLOAD) => {
-    console.log("leave called", payload);
     if (!initializedRef.current) return;
 
     setInChat((prev) => {
@@ -121,7 +121,6 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handleDetails = useCallback((payload: DETAILS_SOCKET_PAYLOAD) => {
-    console.log("details called", payload);
     setInChat(new Map(Object.entries(payload.inChat)));
     setOnline(new Set(payload.onlineUsers));
 
@@ -129,7 +128,6 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handleOnline = useCallback((payload: ONLINE_SOCKET_PAYLOAD) => {
-    console.log("online called", payload);
     if (!initializedRef.current) return;
 
     setOnline((prev) => {
@@ -185,7 +183,6 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!socket) return;
-    console.log("socket initialized");
     socket.on(SOCKET_EVENTS.COMMON.JOIN_CLIENT, handleJoin);
     socket.on(SOCKET_EVENTS.COMMON.LEAVE_CLIENT, handleLeave);
     socket.on(SOCKET_EVENTS.COMMON.DETAILS_CLIENT, handleDetails);
@@ -210,11 +207,11 @@ export const ChatroomProvider = ({ children }: { children: ReactNode }) => {
     handleDetails,
     handleOnline,
     handleOffline,
+    user,
   ]);
 
   const join = useCallback(
     async (newChatroom: Chatroom) => {
-      console.log(socket, user);
       if (!socket || !user) return;
 
       if (chatroom) {

@@ -9,6 +9,7 @@ import {
   GetChatroomResponse,
   GetChatroomsRequest,
   GetChatroomsResponse,
+  LastMessage,
   UserDetails,
 } from '@yapper/types';
 import { generateCuid } from '@yapper/utils';
@@ -137,6 +138,8 @@ export class ChatroomService {
           name: chatroom.name,
           icon: chatroom.icon,
           createdBy: participantsMap.get(chatroom.createdBy),
+          lastMessage:
+            chatroom.lastMessage as unknown as LastMessage,
           ...(chatroom.updatedBy
             ? {
                 updatedBy: participantsMap.get(chatroom.updatedBy),

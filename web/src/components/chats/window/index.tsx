@@ -5,6 +5,7 @@ import ChatArea from "./chatarea";
 import ChatInput from "./input";
 import { useChatroom } from "@/provider/chatroom.provider";
 import { MessageSquare } from "lucide-react";
+import { WindowProvider } from "./provider";
 
 export default function Window() {
   const { chatroom } = useChatroom();
@@ -29,10 +30,12 @@ export default function Window() {
   }
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <ChatHeader />
-      <ChatArea />
-      <ChatInput />
-    </div>
+    <WindowProvider>
+      <div className="flex flex-col w-full h-full relative">
+        <ChatHeader />
+        <ChatArea />
+        <ChatInput />
+      </div>
+    </WindowProvider>
   );
 }

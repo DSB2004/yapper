@@ -8,6 +8,7 @@ import ContextWrapper from "./context";
 import MessageProviderWrapper from "./provider";
 import Position from "./position";
 import Container from "./container";
+import Attachment from "./attachment";
 export function MessageCard({
   next,
   msg,
@@ -16,12 +17,17 @@ export function MessageCard({
   msg: Message;
 }) {
   return (
-    <MessageProviderWrapper next={next} msg={msg}>
-      <Position>
-        <ContextWrapper>
-          <Container></Container>
-        </ContextWrapper>
-      </Position>
-    </MessageProviderWrapper>
+    <div id={msg.publicId} className="p-2">
+      <MessageProviderWrapper next={next} msg={msg}>
+        <Position>
+          <ContextWrapper>
+            <div className="flex gap-2 flex-col">
+              <Attachment></Attachment>
+              <Container></Container>
+            </div>
+          </ContextWrapper>
+        </Position>
+      </MessageProviderWrapper>
+    </div>
   );
 }

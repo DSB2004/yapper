@@ -16,5 +16,11 @@ export interface Chatroom {
   createdAt: string;
   updatedAt: string;
   participants: UserDetails[];
-  lastMessage: any;
+  lastMessage?: {
+    publicId: string;
+    text: string;
+    by: string;
+    createdAt: string;
+    previewText: string;
+  };
 }

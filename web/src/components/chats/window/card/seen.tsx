@@ -4,18 +4,17 @@ import { useChatroom } from "@/provider/chatroom.provider";
 import { CheckCheck, Check } from "lucide-react";
 export default function Seen() {
   const { chatroom } = useChatroom();
-  const { msg, you } = useMessageProvider();
+  const { msg, you, isDeleted } = useMessageProvider();
 
-  const seenByAll = useMemo(() => {
-    if (!msg || !chatroom) return false;
-    return (msg.seen ?? []).length === chatroom?.participants.length;
-  }, [msg, chatroom]);
-  const receviedByAll = useMemo(() => {
-    if (!msg || !chatroom) return false;
-    return (msg.received ?? []).length === chatroom?.participants.length;
-  }, [msg, chatroom]);
+  const seenByAll =
+    !!msg && !!chatroom && (msg.seen ?? []).length === (msg.for ?? []).length;
 
-  if (!you) return <></>;
+  const receviedByAll =
+    !!msg &&
+    !!chatroom &&
+    (msg.received ?? []).length === (msg.for ?? []).length;
+
+  if (!you || isDeleted) return <></>;
   return (
     <div>
       {seenByAll ? (
@@ -32,4 +31,3 @@ export default function Seen() {
     </div>
   );
 }
-``;

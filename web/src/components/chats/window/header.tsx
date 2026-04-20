@@ -5,7 +5,7 @@ import React, { useMemo, useState } from "react";
 
 export default function ChatHeader() {
   // const [menuOpen, setMenuOpen] = useState(false);
-  const { chatroom: room, online, inChat } = useChatroom();
+  const { chatroom: room, online, inChat, typing } = useChatroom();
   const { data: user } = useUserStore();
   if (!room) return <></>;
 
@@ -41,53 +41,91 @@ export default function ChatHeader() {
   }, [user, room, online]);
 
   const label = useMemo(() => {
+    if (!room) return "";
+
+    const roomId = room.chatroomId;
+    const usersInChat = inChat.get(roomId) || [];
+    const typingUsers = typing.get(roomId) || [];
+
+    const others = room.participants.filter((p) => p.userId !== user?.userId);
+
+    const formatName = (p: (typeof others)[number]) =>
+      p.userId === user?.userId ? "You" : p.name;
+
+    // =========================
+    // 🟢 PERSONAL CHAT
+    // =========================
     if (room.type === "PERSONAL") {
-      if (!details.userId) return "Offline";
+      const other = others[0];
 
-      const usersInChat = inChat.get(room.chatroomId) || [];
+      if (!other) return "Offline";
 
-      if (usersInChat.includes(details.userId)) {
-        return "In chat";
+      const isTyping = typingUsers.includes(other.userId);
+
+      if (isTyping) return "Typing...";
+
+      const isInChat = usersInChat.includes(other.userId);
+
+      if (isInChat) {
+        return `In Chat`;
       }
 
-      if (online.has(details.userId)) {
+      if (online.has(other.userId)) {
         return "Online";
       }
 
+      // if (room.lastMessage) return `Last seen ${room.lastMessage?.createdAt}`;
       return "Offline";
-    } else {
-      const usersInChat = inChat.get(room.chatroomId) || [];
+    }
 
-      const others = room.participants; // don't remove yourself now
+    // =========================
+    // 🟣 GROUP CHAT
+    // =========================
 
-      const activeUsers = others.filter((p) => usersInChat.includes(p.userId));
+    const typingGroup = others.filter((p) => typingUsers.includes(p.userId));
 
-      const formatName = (p: (typeof others)[number]) =>
-        p.userId === user?.userId ? "You" : p.name;
+    if (typingGroup.length > 0) {
+      const names = typingGroup.map(formatName);
 
-      if (activeUsers.length > 0) {
-        const names = activeUsers.map(formatName);
-
-        if (names.length <= 3) {
-          return `${names.join(", ")} ${
-            names.length === 1 ? "is" : "are"
-          } in chat`;
-        }
-
-        return `${names.slice(0, 3).join(", ")} and ${
-          names.length - 3
-        } others are in chat`;
+      if (names.length === 1) {
+        return `${names[0]} is typing...`;
       }
-
-      const names = others.map(formatName);
 
       if (names.length <= 3) {
-        return names.join(", ");
+        return `${names.join(", ")} are typing...`;
       }
 
-      return `${names.slice(0, 3).join(", ")}...`;
+      return `${names.slice(0, 3).join(", ")} and ${
+        names.length - 3
+      } others are typing...`;
     }
-  }, [details, room, online, inChat]);
+
+    const activeUsers = others.filter((p) => usersInChat.includes(p.userId));
+
+    if (activeUsers.length > 0) {
+      const names = activeUsers.map(formatName);
+
+      if (names.length === 1) {
+        return `${names[0]} is in chat`;
+      }
+
+      if (names.length <= 3) {
+        return `${names.join(", ")} are in chat`;
+      }
+
+      return `${names.slice(0, 3).join(", ")} and ${
+        names.length - 3
+      } others are in chat`;
+    }
+
+    const names = others.map(formatName);
+
+    if (names.length <= 3) {
+      return names.join(", ");
+    }
+
+    return `${names.slice(0, 3).join(", ")}...`;
+  }, [room, online, inChat, typing, user]);
 
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b relative">
@@ -95,7 +133,7 @@ export default function ChatHeader() {
         <div className="relative">
           <img
             src={details.icon}
-            className={` ${details.online ? " border-green-600  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-10 h-10 rounded-full object-cover`}
+            className={` ${details.online ? " border-primary  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-10 h-10 rounded-full object-cover`}
           />
         </div>
         <div>

@@ -1,11 +1,14 @@
 import { useUserStore } from "@/store/user.store";
 import { Chatroom } from "@/types/chatroom";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useChatroom } from "@/provider/chatroom.provider";
 import Time from "../../common/time";
+import Typing from "./ui/typing";
+import { useMessage } from "@/provider/message,provider";
 
 export default function Card({ room }: { room: Chatroom }) {
-  const { join, online } = useChatroom();
+  const { join, online, typing } = useChatroom();
+  const { unreadCount } = useMessage();
   const { data: user, isLoading, isFetching } = useUserStore();
   const details = useMemo(() => {
     if (room.type === "GROUP")
@@ -38,6 +41,10 @@ export default function Card({ room }: { room: Chatroom }) {
     };
   }, [user, room, online]);
 
+  useEffect(() => {
+    console.log(typing);
+  }, [typing]);
+
   return (
     <div
       onClick={() => join(room)}
@@ -48,11 +55,22 @@ export default function Card({ room }: { room: Chatroom }) {
       <div className="relative">
         <img
           src={details.icon}
-          className={` ${details.online ? " border-green-600  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-12 h-12 rounded-full object-cover`}
+          className={` ${details.online ? " border-primary  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-12 h-12 rounded-full object-cover`}
         />
-        {/* <div className="absolute z-10 -bottom-0.5 -right-1">
-          <Typing></Typing>
-        </div> */}
+        <div className="absolute z-10 -bottom-0.5 -right-1">
+          {(details.online || details.type === "GROUP") &&
+          typing.has(room.chatroomId) ? (
+            <Typing></Typing>
+          ) : (
+            <>
+              {unreadCount.has(room.chatroomId) && (
+                <div className="bg-primary h-4 w-4 text-xs rounded-full text-center">
+                  {unreadCount.get(room.chatroomId)}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -60,11 +78,20 @@ export default function Card({ room }: { room: Chatroom }) {
         <div className="flex justify-between items-center">
           <p className="font-medium truncate">{details.name}</p>
           <span className="text-xs text-gray-500">
-            <Time time={room.createdAt}></Time>
+            {room.lastMessage ? (
+              <Time time={room.lastMessage.createdAt}></Time>
+            ) : (
+              <Time time={room.createdAt}></Time>
+            )}
           </span>
         </div>
-
-        <p className="text-sm text-gray-500 truncate">Tap to Chat</p>
+        {room.lastMessage ? (
+          <p className="text-sm text-gray-500 truncate">
+            {room.lastMessage.previewText}
+          </p>
+        ) : (
+          <p className="text-sm text-gray-500 truncate">Tap to Chat</p>
+        )}
       </div>
     </div>
   );
