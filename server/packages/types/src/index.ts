@@ -34,9 +34,16 @@ export {
   GetUsersResponse,
   GetUserByIdRequest,
   GetUserByPhoneRequest,
+  CheckBlockRequest,
+  CheckBlockResponse,
 } from "./generated/user";
 
-export { UserDetails, MessageSummary } from "./generated/common";
+export {
+  UserDetails,
+  MessageSummary,
+  LastMessage,
+  ChatroomSummary,
+} from "./generated/common";
 export {
   CreateChatroomRequest,
   CreateChatroomResponse,
@@ -46,15 +53,24 @@ export {
   GetChatroomsResponse,
   GetChatroomIdsRequest,
   GetChatroomIdsResponse,
-  LastMessage,
+  GetChatroomSummaryRequest,
+  GetChatroomSummaryResponse,
 } from "./generated/chatroom";
 
 export {
   GetMessageRequest,
   GetMessageResponse,
   MessageType,
+  GetUnreadCountRequest,
+  GetUnreadCountResponse,
 } from "./generated/message";
 
+export {
+  AddUsersToChatroomRequest,
+  AddUsersToChatroomResponse,
+  RemoveUsersFromChatroomResponse,
+  RemoveUsersFromChatroomRequest,
+} from "./generated/gateway";
 export * from "./types";
 export * from "./constants";
 export * from "./kafka";

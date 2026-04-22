@@ -9,9 +9,10 @@ import {
 import { Plus, Image, File, Video } from "lucide-react";
 import { upload } from "@/app/actions/uploads/upload.action";
 import { useInput } from "./provider";
+import { useChatroom } from "@/provider/chatroom.provider";
 export default function Attachment() {
   const [open, setOpen] = useState(false);
-
+  const { chatroom } = useChatroom();
   const { attachments, setAttachments } = useInput();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,7 +40,11 @@ export default function Attachment() {
   return (
     <>
       {/* ➕ BUTTON */}
-      <button onClick={() => setOpen(true)} className="rounded-full">
+      <button
+        disabled={chatroom?.isBlocked}
+        onClick={() => setOpen(true)}
+        className="rounded-full disabled:cursor-not-allowed"
+      >
         <Plus className="text-muted-foreground hover:text-primary" />
       </button>
 

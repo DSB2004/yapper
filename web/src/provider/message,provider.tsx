@@ -9,6 +9,8 @@ import {
   SetStateAction,
   Dispatch,
   useEffect,
+  useRef,
+  useCallback,
 } from "react";
 import { useChatroom } from "./chatroom.provider";
 import { useSocket } from "./socket.provider";
@@ -62,12 +64,13 @@ function generatePreviewText({
   return "";
 }
 export const MessageProvider = ({ children }: { children: ReactNode }) => {
-  const { chatroom } = useChatroom();
-  const { refetch } = useChatroomStore();
+  const { chatroom, newChatrooms } = useChatroom();
+  const { refetch, data: chatrooms } = useChatroomStore();
   const [unreadCount, setCount] = useState<Map<string, number>>(new Map());
   const { socket } = useSocket();
   const { data: user } = useUserStore();
   const queryClient = useQueryClient();
+  const initRef = useRef<boolean>(false);
   useEffect(() => {
     if (!chatroom) return;
     setCount((prev) => {
@@ -77,9 +80,23 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [chatroom]);
   useEffect(() => {
-    if (!socket) return;
-    const handleAdd = (payload: ADD_MESSAGE_SOCKET_PAYLOAD) => {
+    if (!chatrooms || initRef.current) return;
+    initRef.current = true;
+    const newCountMap = new Map();
+    chatrooms.map((ele) => {
+      if (ele.unreadCount) {
+        newCountMap.set(ele.chatroomId, ele.unreadCount);
+      }
+    });
+    setCount(newCountMap);
+  }, [chatrooms]);
+  const handleAdd = useCallback(
+    (payload: ADD_MESSAGE_SOCKET_PAYLOAD) => {
+      if (!socket || !user) return;
+      console.log("add", payload);
       const { chatroomId, message, by, createdAt } = payload;
+      
+      if (!message.for.includes(user.userId)) return;
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
         if (!old) return old;
         return [
@@ -124,12 +141,15 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
           console.log("old not found");
           return old;
         }
-        const chatroomToUpdate = old.find(
-          (ele) => ele.chatroomId === chatroomId,
-        );
+        let chatroomToUpdate = old.find((ele) => ele.chatroomId === chatroomId);
         if (!chatroomToUpdate) {
+          chatroomToUpdate = newChatrooms.find(
+            (ele) => ele.chatroomId === chatroomId,
+          );
+        }
+        if (!chatroomToUpdate) {
+          initRef.current = false;
           refetch(); // incase user gets a new contact message
-          console.log("contact not found");
           return old;
         }
 
@@ -148,9 +168,20 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
           ...old.filter((c) => c.chatroomId !== chatroomId),
         ];
       });
-    };
-
-    const handleUpdate = (payload: UPDATE_MESSAGE_SOCKET_PAYLOAD) => {
+    },
+    [
+      queryClient,
+      socket,
+      user,
+      refetch,
+      newChatrooms,
+      chatroom,
+      setCount,
+      refetch,
+    ],
+  );
+  const handleUpdate = useCallback(
+    (payload: UPDATE_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId, message } = payload;
 
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
@@ -164,10 +195,14 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
       });
       queryClient.setQueryData<Chatroom[]>(["chatrooms"], (old) => {
         if (!old) return old;
-        const chatroomToUpdate = old.find(
-          (ele) => ele.chatroomId === chatroomId,
-        );
+        let chatroomToUpdate = old.find((ele) => ele.chatroomId === chatroomId);
         if (!chatroomToUpdate) {
+          chatroomToUpdate = newChatrooms.find(
+            (ele) => ele.chatroomId === chatroomId,
+          );
+        }
+        if (!chatroomToUpdate) {
+          initRef.current = false;
           refetch(); // incase user gets a new contact message
           return old;
         }
@@ -194,9 +229,21 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
           ...old.filter((c) => c.chatroomId !== chatroomId),
         ];
       });
-    };
+    },
+    [
+      queryClient,
+      socket,
+      user,
+      refetch,
+      newChatrooms,
+      chatroom,
+      setCount,
+      refetch,
+    ],
+  );
 
-    const handleDelete = (payload: DELETE_MESSAGE_SOCKET_PAYLOAD) => {
+  const handleDelete = useCallback(
+    (payload: DELETE_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId } = payload;
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
         if (!old) return old;
@@ -210,10 +257,14 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
 
       queryClient.setQueryData<Chatroom[]>(["chatrooms"], (old) => {
         if (!old) return old;
-        const chatroomToUpdate = old.find(
-          (ele) => ele.chatroomId === chatroomId,
-        );
+        let chatroomToUpdate = old.find((ele) => ele.chatroomId === chatroomId);
         if (!chatroomToUpdate) {
+          chatroomToUpdate = newChatrooms.find(
+            (ele) => ele.chatroomId === chatroomId,
+          );
+        }
+        if (!chatroomToUpdate) {
+          initRef.current = false;
           refetch(); // incase user gets a new contact message
           return old;
         }
@@ -241,9 +292,20 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
           ...old.filter((c) => c.chatroomId !== chatroomId),
         ];
       });
-    };
-
-    const handleReaction = (payload: REACTION_MESSAGE_SOCKET_PAYLOAD) => {
+    },
+    [
+      queryClient,
+      socket,
+      user,
+      refetch,
+      newChatrooms,
+      chatroom,
+      setCount,
+      refetch,
+    ],
+  );
+  const handleReaction = useCallback(
+    (payload: REACTION_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId, reaction, reactionBy } = payload;
 
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
@@ -279,9 +341,20 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
           };
         });
       });
-    };
-
-    const handleSeen = (payload: SEEN_MESSAGE_SOCKET_PAYLOAD) => {
+    },
+    [
+      queryClient,
+      socket,
+      user,
+      refetch,
+      newChatrooms,
+      chatroom,
+      setCount,
+      refetch,
+    ],
+  );
+  const handleSeen = useCallback(
+    (payload: SEEN_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId, seenBy } = payload;
       console.log("seen");
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
@@ -295,9 +368,21 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
           };
         });
       });
-    };
+    },
+    [
+      queryClient,
+      socket,
+      user,
+      refetch,
+      newChatrooms,
+      chatroom,
+      setCount,
+      refetch,
+    ],
+  );
 
-    const handleReceived = (payload: RECEIVED_MESSAGE_SOCKET_PAYLOAD) => {
+  const handleReceived = useCallback(
+    (payload: RECEIVED_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId, receivedBy } = payload;
       console.log("received");
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
@@ -312,9 +397,21 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
           };
         });
       });
-    };
+    },
+    [
+      queryClient,
+      socket,
+      user,
+      refetch,
+      newChatrooms,
+      chatroom,
+      setCount,
+      refetch,
+    ],
+  );
 
-    const handlePin = (payload: PINNED_MESSAGE_SOCKET_PAYLOAD) => {
+  const handlePin = useCallback(
+    (payload: PINNED_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId } = payload;
 
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
@@ -326,9 +423,21 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
             : msg,
         );
       });
-    };
+    },
+    [
+      queryClient,
+      socket,
+      user,
+      refetch,
+      newChatrooms,
+      chatroom,
+      setCount,
+      refetch,
+    ],
+  );
 
-    const handleStar = (payload: STARRED_MESSAGE_SOCKET_PAYLOAD) => {
+  const handleStar = useCallback(
+    (payload: STARRED_MESSAGE_SOCKET_PAYLOAD) => {
       const { chatroomId, messageId } = payload;
 
       queryClient.setQueryData<Message[]>(["message", chatroomId], (old) => {
@@ -340,7 +449,20 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
             : msg,
         );
       });
-    };
+    },
+    [
+      queryClient,
+      socket,
+      user,
+      refetch,
+      newChatrooms,
+      chatroom,
+      setCount,
+      refetch,
+    ],
+  );
+  useEffect(() => {
+    if (!socket) return;
 
     socket.on(SOCKET_EVENTS.MESSAGE.ADD_CLIENT, handleAdd);
     socket.on(SOCKET_EVENTS.MESSAGE.UPDATE_CLIENT, handleUpdate);
@@ -361,7 +483,17 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
       socket.off(SOCKET_EVENTS.MESSAGE.PIN_CLIENT, handlePin);
       socket.off(SOCKET_EVENTS.MESSAGE.STAR_CLIENT, handleStar);
     };
-  }, [socket, chatroom, queryClient, user, refetch]);
+  }, [
+    socket,
+    handleAdd,
+    handleUpdate,
+    handleDelete,
+    handlePin,
+    handleReaction,
+    handleReceived,
+    handleSeen,
+    handleStar,
+  ]);
 
   return (
     <MessageContext.Provider

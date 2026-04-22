@@ -6,8 +6,9 @@ import "common.proto";
 
 
 service Chatroom {
- rpc HealthCheck (common.HealthCheckRequest) returns (common.HealthCheckResponse);
+  rpc HealthCheck (common.HealthCheckRequest) returns (common.HealthCheckResponse);
   rpc GetChatrooms(GetChatroomsRequest) returns (GetChatroomsResponse);
+  rpc GetChatroomSummary(GetChatroomSummaryRequest)returns (GetChatroomSummaryResponse);
   rpc GetChatroom(GetChatroomRequest)returns (GetChatroomResponse);
   rpc CreateChatroom(CreateChatroomRequest) returns (CreateChatroomResponse);
   rpc GetChatroomIds(GetChatroomIdsRequest) returns (GetChatroomIdsResponse);
@@ -16,40 +17,37 @@ message GetChatroomIdsRequest {
   string userId = 1;
 }
 
+message ChatroomInfo{
+ string chatroomId=1;
+  bool isBlocked=2;
+}
 message GetChatroomIdsResponse{
   string message = 1;
   bool success = 2;
-  repeated string chatrooms=3;
+  repeated ChatroomInfo chatrooms=3;
 }
+
+
+
+message GetChatroomSummaryRequest {
+  string chatroomId = 1;
+   string userId = 2;
+}
+message GetChatroomSummaryResponse{
+  string message = 1;
+  bool success = 2;
+  optional common.ChatroomSummary chatroom=3;
+  int32 status = 4;
+}
+
 
 message GetChatroomsRequest {
   string userId = 1;
 }
-
-
-message LastMessage{
-    string publicId=1;
-    string text=2;
-    string by=3;
-    string createdAt=4;
-    string previewText=5;  
-}
-message ChatroomSummary{
-  string chatroomId = 1;
-  repeated common.UserDetails participants = 2;
-  optional LastMessage lastMessage = 3;
-  optional string name = 4;
-  optional string description = 5;
-  optional string icon = 6;
-  string type=7;
-    string referenceId=8;
-     string createdAt=9;
-}
-
 message GetChatroomsResponse{
   string message = 1;
   bool success = 2;
-  repeated ChatroomSummary chats=3;
+  repeated common.ChatroomSummary chats=3;
    int32 status = 4;
 }
 

@@ -74,6 +74,7 @@ export default function CreateGroup() {
       if (!res.success) toast.error(res.message);
       else {
         if (user && res.chatroomId && res.groupId) {
+          const now = Date.now();
           addChatroom({
             chatroomId: res.chatroomId,
             referenceId: res.groupId,
@@ -87,9 +88,8 @@ export default function CreateGroup() {
               name: `${user.firstName} ${user.lastName}`,
               userId: user.userId,
             },
-
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(now).toISOString(),
+            updatedAt: new Date(now).toISOString(),
             participants: [
               ...form.members,
               {
@@ -98,7 +98,7 @@ export default function CreateGroup() {
                 userId: user.userId,
               },
             ],
-            lastMessage: {},
+            unreadCount: 0,
           });
         }
         toast.info(res.message);

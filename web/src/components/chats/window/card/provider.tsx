@@ -45,6 +45,14 @@ export default function MessageProviderWrapper({
       (ele) => ele.userId === sender,
     );
     if (!senderDetails) return { name: "", avatar: "", userId: "" };
+
+    if (room.areYouBlocked && msg.by !== user?.userId) {
+      return {
+        avatar: "/placeholder.webp",
+        name: "Yapper User",
+        userId: senderDetails.userId as string,
+      };
+    }
     return { ...senderDetails };
   }, [user, room, msg]);
 

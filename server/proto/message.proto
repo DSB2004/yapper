@@ -7,10 +7,25 @@ import "common.proto";
 service Message {
  rpc HealthCheck (common.HealthCheckRequest) returns (common.HealthCheckResponse);
   rpc GetMessages (GetMessageRequest) returns (GetMessageResponse);
+  rpc GetUnreadCount (GetUnreadCountRequest) returns (GetUnreadCountResponse);
 }
+
+message GetUnreadCountRequest {
+  string chatroom = 1;
+  string userId=2;
+}
+
+message GetUnreadCountResponse {
+  string message = 1;
+  bool success = 2;
+  int32 status = 3;
+  int32 unreadCount=4;
+}
+
 
 message GetMessageRequest {
   string chatroom = 1;
+  string userId=2;
 }
 
 message MessageAttachment {

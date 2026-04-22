@@ -12,4 +12,8 @@ export const KAFKA_EVENTS = {
   GROUP: {
     GROUP_UPDATE: "kafka.group.update",
   },
+  CONTACT: {
+    BLOCK: "kafka.contact.block",
+    UNBLOCK: "kafka.contact.unblock",
+  },
 };

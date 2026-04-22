@@ -38,7 +38,7 @@ export const SOCKET_EVENTS = {
     DETAILS: "socket.common.connection-details",
     JOIN: "socket.common.join",
     LEAVE: "socket.common.leave",
-
+    NEW_CHATROOM: "socket.common.new-chatroom",
     ONLINE_CLIENT: "socket.common.online.client",
     OFFLINE_CLIENT: "socket.common.offline.client",
     TYPING_CLIENT: "socket.common.typing.client",
@@ -46,6 +46,13 @@ export const SOCKET_EVENTS = {
     DETAILS_CLIENT: "socket.common.connection-details.client",
     JOIN_CLIENT: "socket.common.join.client",
     LEAVE_CLIENT: "socket.common.leave.client",
+    NEW_CHATROOM_CLIENT: "socket.common.new-chatroom.client",
+  },
+  CONTACT: {
+    BLOCK: "socket.chat.block",
+    UNBLOCK: "socket.chat.unblock",
+    BLOCK_CLIENT: "socket.chat.block.client",
+    UNBLOCK_CLIENT: "socket.chat.unblock.client",
   },
   GROUP: {
     ADD: "socket.group.add",
@@ -120,7 +127,10 @@ export interface UPDATE_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {
 }
 
 export interface DELETE_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {}
-export interface PINNED_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {}
+export interface PINNED_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {
+  for: string[];
+  pinnedBy: string;
+}
 export interface STARRED_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {}
 
 export interface REACTION_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {

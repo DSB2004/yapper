@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ContactService } from './contact.service';
 import { CommonService } from 'src/utils/common/common.service';
-import { CreateContactDto } from './contact.dto';
+import { BlockContactDto, CreateContactDto } from './contact.dto';
 import { CurrentUser } from 'src/types';
 
 @Controller('contact')
@@ -30,11 +30,13 @@ export class ContactController {
     return this.util.handleResponse(result);
   }
 
-  @Patch(':id')
+  @Patch('block')
   @Version('1')
   @HttpCode(200)
-  async blockContact(@Param('id') id: string) {
-    // const result = await this.service.blockContact({chatroomId:});
-    // return this.util.handleResponse(result);
+  async blockContact(@Body() data: BlockContactDto, @CurrentUser() user) {
+    const { authId } = user;
+    const { contactUserId } = data;
+    const result = await this.service.blockContact({ contactUserId, authId });
+    return this.util.handleResponse(result);
   }
 }

@@ -2,11 +2,17 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Client, type ClientGrpc, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 
-import type { GetUsersResponse, GetUsersRequest } from '@yapper/types';
+import type {
+  GetUsersResponse,
+  GetUsersRequest,
+  CheckBlockRequest,
+  CheckBlockResponse,
+} from '@yapper/types';
 import { Observable } from 'rxjs';
 
 export type UserGrpcService = {
   getUsers(data: GetUsersRequest): Observable<GetUsersResponse>;
+  checkBlockStatus(data: CheckBlockRequest): Observable<CheckBlockResponse>;
 };
 
 @Injectable()

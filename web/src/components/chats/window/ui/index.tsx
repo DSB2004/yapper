@@ -1,19 +1,20 @@
 import React, { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChatroom } from "@/provider/chatroom.provider";
+import { useUserStore } from "@/store/user.store";
 
 export default function Typing() {
   const { chatroom, typing } = useChatroom();
-
+  const { data: user } = useUserStore();
   const users = useMemo(() => {
-    if (!chatroom) return [];
+    if (!chatroom || !user) return [];
 
     const typingUserIds = typing.get(chatroom.chatroomId) || [];
 
-    return chatroom.participants.filter((p) =>
-      typingUserIds.includes(p.userId),
+    return chatroom.participants.filter(
+      (p) => typingUserIds.includes(p.userId) && p.userId !== user.userId,
     );
-  }, [chatroom, typing]);
+  }, [chatroom, typing, user]);
 
   return (
     <div className="h-10 flex items-center px-3">

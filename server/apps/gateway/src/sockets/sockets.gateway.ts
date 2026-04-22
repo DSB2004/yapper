@@ -3,6 +3,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   WebSocketServer,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { AuthService } from 'src/rpc/auth/auth.service';
@@ -15,10 +16,11 @@ import {
   OFFLINE_SOCKET_PAYLOAD,
   SOCKET_EVENTS,
 } from '@yapper/types';
+import { SocketsService } from './sockets.service';
 
 @WebSocketGateway()
 export class SocketsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
   @WebSocketServer()
   server!: Server;
@@ -27,7 +29,12 @@ export class SocketsGateway
     private readonly user: UserService,
     private readonly chatroom: ChatroomService,
     private readonly socket: Sockets,
+    private readonly _service: SocketsService,
   ) {}
+
+  async afterInit(server: any) {
+    this._service.setServer(server);
+  }
   async handleConnection(client: Socket) {
     const { 'access-token': accessToken, 'refresh-token': refreshToken } =
       client.handshake.auth;
@@ -67,25 +74,34 @@ export class SocketsGateway
     //   userId,
     // };
 
-    const chatrooms = await this.chatroom.getChatroomIds({
+    const res = await this.chatroom.getChatroomIds({
       userId: user.userId,
     });
 
-    console.log(chatrooms);
+    const chatrooms = res.chatrooms;
     const chatroomMap = new Map<string, string[]>();
-    for (let chatroom of chatrooms.chatrooms) {
-      client.join(chatroom);
-      client.to(chatroom).emit(SOCKET_EVENTS.COMMON.ONLINE_CLIENT, {
-        userId: user.userId,
-      } as ONLINE_SOCKET_PAYLOAD);
-      await this.socket.upsertUserRoom({ userId: user.userId, room: chatroom });
-      const userInRoom = await this.socket.getUsersInRoom(chatroom);
-      chatroomMap.set(chatroom, userInRoom);
+    for (let chatroom of chatrooms) {
+      if (!chatroom.isBlocked) {
+        client.join(chatroom.chatroomId);
+        client
+          .to(chatroom.chatroomId)
+          .emit(SOCKET_EVENTS.COMMON.ONLINE_CLIENT, {
+            userId: user.userId,
+          } as ONLINE_SOCKET_PAYLOAD);
+        await this.socket.upsertUserRoom({
+          userId: user.userId,
+          room: chatroom.chatroomId,
+        });
+        const userInRoom = await this.socket.getUsersInRoom(
+          chatroom.chatroomId,
+        );
+        chatroomMap.set(chatroom.chatroomId, userInRoom);
+      }
     }
 
     const onlineUsers = await this.socket.getOnlineUsers(
       this.server,
-      chatrooms.chatrooms,
+      chatrooms.map((ele) => ele.chatroomId),
     );
     await this.socket.setSocketId({ userId: user.userId, socketId: client.id });
     const payload = {
@@ -102,9 +118,7 @@ export class SocketsGateway
     await this.socket.delUserId({ socketId: client.id });
     if (userId) {
       const rooms = await this.socket.getUserAllRooms({ userId });
-      console.log(userId, rooms);
       for (let room of rooms) {
-        console.log(room);
         client.to(room).emit(SOCKET_EVENTS.COMMON.OFFLINE_CLIENT, {
           userId,
         } as OFFLINE_SOCKET_PAYLOAD);

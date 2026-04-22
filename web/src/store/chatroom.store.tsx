@@ -32,7 +32,7 @@ function ChatroomStoreContent({ children }: { children: React.ReactNode }) {
       }
       return res.chats;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

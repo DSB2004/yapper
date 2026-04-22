@@ -13,7 +13,10 @@ service User {
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
 
   rpc CreateContact(CreateContactRequest) returns (CreateContactResponse);
-
+  rpc BlockContact(BlockContactRequest) returns (BlockContactResponse);
+  rpc CheckBlockStatus(CheckBlockRequest) returns (CheckBlockResponse);
+  
+  
   rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
   rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse);
   rpc AddGroupMember(AddGroupMemberRequest) returns (AddGroupMemberResponse);
@@ -108,16 +111,29 @@ message CreateContactResponse {
 }
 
 message BlockContactRequest {
-  string chatroomId = 1;
+  string contactUserId = 1;
   string authId=2;
 }
 
 message BlockContactResponse {
-  string chatroomId = 1;
   bool success = 2;
   string message = 3;
   int32 status = 4;
 }
+
+
+message CheckBlockRequest {
+  string contactId = 1;
+  string userId=2;
+}
+
+message CheckBlockResponse {
+  bool isBlocked=1;
+  bool success = 2;
+  string message = 3;
+  int32 status = 4;
+}
+
 
 // -------------------- Group Messages --------------------
 

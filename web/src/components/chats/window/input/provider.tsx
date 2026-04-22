@@ -45,7 +45,14 @@ export const InputProvider = ({ children }: { children: ReactNode }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setText(value);
-    if (!socket || !chatroom || !user || value.trim() === "") return;
+    if (
+      !socket ||
+      !chatroom ||
+      !user ||
+      value.trim() === "" ||
+      chatroom.isBlocked
+    )
+      return;
 
     if (!typingRef.current) {
       typingRef.current = true;
@@ -85,7 +92,9 @@ export const InputProvider = ({ children }: { children: ReactNode }) => {
         type: "GENERAL",
         attachments,
         text,
-        for: chatroom.participants.map((ele) => ele.userId),
+        for: chatroom.areYouBlocked
+          ? [user.userId]
+          : chatroom.participants.map((ele) => ele.userId),
         isReply: replyTo ? true : false,
         replyFor: replyTo?.messageId ?? undefined,
         isForwarded: false,

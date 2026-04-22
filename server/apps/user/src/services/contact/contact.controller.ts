@@ -1,6 +1,10 @@
 import { Controller } from '@nestjs/common';
 import { ContactService } from './contact.service';
-import { CreateContactRequest, BlockContactRequest } from '@yapper/types';
+import {
+  CreateContactRequest,
+  BlockContactRequest,
+  CheckBlockRequest,
+} from '@yapper/types';
 import { GrpcMethod } from '@nestjs/microservices';
 
 @Controller()
@@ -11,8 +15,13 @@ export class ContactController {
     return await this.service.createContact(payload);
   }
 
-  @GrpcMethod('User', 'BlockGroup')
-  async updateGroup(payload: BlockContactRequest) {
+  @GrpcMethod('User', 'BlockContact')
+  async blockContact(payload: BlockContactRequest) {
     return await this.service.blockContact(payload);
+  }
+
+  @GrpcMethod('User', 'CheckBlockStatus')
+  async checkBlockStatus(payload: CheckBlockRequest) {
+    return await this.service.checkBlockStatus(payload);
   }
 }

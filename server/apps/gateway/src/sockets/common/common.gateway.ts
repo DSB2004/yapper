@@ -32,6 +32,7 @@ export class CommonGateway {
   @SubscribeMessage(SOCKET_EVENTS.COMMON.LEAVE)
   async handleLeaveMessage(client: any, payload: LEAVECHAT_SOCKET_PAYLOAD) {
     const { chatroomId } = payload;
+
     this.server.to(chatroomId).emit(SOCKET_EVENTS.COMMON.LEAVE_CLIENT, payload);
     await this.service.leaveChatroom(payload);
     return { status: 'ok' };

@@ -1,6 +1,11 @@
 import { Controller } from '@nestjs/common';
 import { MessageService } from './message.service';
-import { GetMessageRequest, GetMessageResponse } from '@yapper/types';
+import {
+  GetMessageRequest,
+  GetMessageResponse,
+  GetUnreadCountRequest,
+  GetUnreadCountResponse,
+} from '@yapper/types';
 import { GrpcMethod } from '@nestjs/microservices';
 
 @Controller()
@@ -10,5 +15,12 @@ export class MessageController {
   @GrpcMethod('Message', 'GetMessages')
   async getMessages(data: GetMessageRequest): Promise<GetMessageResponse> {
     return await this.service.getMessages(data);
+  }
+
+  @GrpcMethod('Message', 'GetUnreadCount')
+  async getUnreadCount(
+    data: GetUnreadCountRequest,
+  ): Promise<GetUnreadCountResponse> {
+    return await this.service.getUnreadCountMessages(data);
   }
 }

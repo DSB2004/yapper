@@ -3,6 +3,7 @@ import { useMessageProvider } from "./provider";
 
 export default function User() {
   const { user, you } = useMessageProvider();
+  
   return (
     <div className="flex gap-2   mt-2 items-center">
       <img

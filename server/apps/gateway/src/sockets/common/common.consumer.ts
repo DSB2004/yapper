@@ -13,7 +13,11 @@ export class CommonConsumer implements OnModuleInit {
     await this.consumer.consume(
       'common-gateway-service',
       {
-        topics: [KAFKA_EVENTS.GROUP.GROUP_UPDATE],
+        topics: [
+          KAFKA_EVENTS.GROUP.GROUP_UPDATE,
+          KAFKA_EVENTS.CONTACT.BLOCK,
+          KAFKA_EVENTS.CONTACT.UNBLOCK,
+        ],
       },
       {
         eachMessage: async ({ topic, partition, message }) => {
@@ -27,6 +31,14 @@ export class CommonConsumer implements OnModuleInit {
           switch (topic) {
             case KAFKA_EVENTS.GROUP.GROUP_UPDATE:
               await this.service.sendGroupUpdate(payload);
+              break;
+
+            case KAFKA_EVENTS.CONTACT.BLOCK:
+              await this.service.blockUser(payload);
+              break;
+
+            case KAFKA_EVENTS.CONTACT.UNBLOCK:
+              await this.service.unBlockUser(payload);
               break;
           }
         },

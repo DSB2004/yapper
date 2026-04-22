@@ -3,17 +3,27 @@ import { db } from 'src/lib/db';
 import { generateCuid } from '@yapper/utils';
 
 import {
+  BLOCK_STATUS_UPDATE,
   BlockContactRequest,
   BlockContactResponse,
   CHATROOM_TYPE,
+  CheckBlockRequest,
+  CheckBlockResponse,
   CreateContactRequest,
   CreateContactResponse,
+  KAFKA_EVENTS,
 } from '@yapper/types';
 import { ChatroomService } from 'src/rpc/chatroom/chatroom.service';
+import { GatewayService } from 'src/rpc/gateway/gateway.service';
+import { KafkaProducer } from 'src/kafka/kafka.producer';
 
 @Injectable()
 export class ContactService {
-  constructor(private readonly chatroom: ChatroomService) {}
+  constructor(
+    private readonly chatroom: ChatroomService,
+    private readonly gateway: GatewayService,
+    private readonly producer: KafkaProducer,
+  ) {}
   async createContact(
     payload: CreateContactRequest,
   ): Promise<CreateContactResponse> {
@@ -140,17 +150,21 @@ export class ContactService {
           authId: payload.authId,
         },
       });
-      if (!user) {
+      const contactUser = await db.user.findUnique({
+        where: {
+          publicId: payload.contactUserId,
+        },
+      });
+      if (!user || !contactUser) {
         return {
           status: 404,
           success: false,
-          message: 'User not found',
-          chatroomId: payload.chatroomId,
+          message: 'User or contactUser not found',
         };
       }
       const contact = await db.contact.findFirst({
         where: {
-          chatroomId: payload.chatroomId,
+          contactId: contactUser.id,
           userId: user.id,
         },
       });
@@ -159,9 +173,8 @@ export class ContactService {
           status: 404,
           success: false,
           message: 'Contact not found',
-          chatroomId: payload.chatroomId,
         };
-      await db.contact.update({
+      const res = await db.contact.update({
         where: {
           id: contact.id,
         },
@@ -170,18 +183,89 @@ export class ContactService {
         },
       });
 
+      const kafkaPayload: BLOCK_STATUS_UPDATE = {
+        contactId: contactUser.publicId,
+        userId: user.publicId,
+        chatroomId: res.chatroomId,
+      };
+      if (res.isBlocked) {
+        await this.gateway.removeUsersFromChatroom({
+          userIds: [user.publicId],
+          chatroom: res.chatroomId,
+        });
+        await this.producer.produce(KAFKA_EVENTS.CONTACT.BLOCK, [kafkaPayload]);
+      } else {
+        await this.gateway.addUsersToChatroom({
+          chatroom: res.chatroomId,
+          userIds: [user.publicId],
+        });
+        await this.producer.produce(KAFKA_EVENTS.CONTACT.UNBLOCK, [
+          kafkaPayload,
+        ]);
+      }
+
       return {
         status: 200,
         success: true,
         message: 'Contact blocked',
-        chatroomId: payload.chatroomId,
       };
     } catch (err) {
       return {
         status: 500,
         success: false,
         message: 'Internal Server Error',
-        chatroomId: payload.chatroomId,
+      };
+    }
+  }
+
+  async checkBlockStatus(
+    payload: CheckBlockRequest,
+  ): Promise<CheckBlockResponse> {
+    try {
+      const user = await db.user.findUnique({
+        where: {
+          publicId: payload.userId,
+        },
+      });
+      const contactUser = await db.user.findUnique({
+        where: {
+          publicId: payload.contactId,
+        },
+      });
+      if (!user || !contactUser) {
+        return {
+          isBlocked: false,
+          status: 404,
+          success: false,
+          message: 'User or contactUser not found',
+        };
+      }
+      const contact = await db.contact.findFirst({
+        where: {
+          contactId: contactUser.id,
+          userId: user.id,
+        },
+      });
+      if (!contact)
+        return {
+          isBlocked: false,
+          status: 404,
+          success: false,
+          message: 'Contact not found',
+        };
+
+      return {
+        isBlocked: contact.isBlocked,
+        status: 200,
+        success: true,
+        message: 'Contact blocked status returned',
+      };
+    } catch (err) {
+      return {
+        isBlocked: false,
+        status: 500,
+        success: false,
+        message: 'Internal Server Error',
       };
     }
   }

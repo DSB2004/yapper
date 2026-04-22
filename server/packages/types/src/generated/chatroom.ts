@@ -18,7 +18,7 @@ import {
   type ServiceError,
   type UntypedServiceImplementation,
 } from "@grpc/grpc-js";
-import { HealthCheckRequest, HealthCheckResponse, MessageSummary, UserDetails } from "./common";
+import { ChatroomSummary, HealthCheckRequest, HealthCheckResponse, MessageSummary, UserDetails } from "./common";
 
 export const protobufPackage = "chatroom";
 
@@ -26,34 +26,31 @@ export interface GetChatroomIdsRequest {
   userId: string;
 }
 
+export interface ChatroomInfo {
+  chatroomId: string;
+  isBlocked: boolean;
+}
+
 export interface GetChatroomIdsResponse {
   message: string;
   success: boolean;
-  chatrooms: string[];
+  chatrooms: ChatroomInfo[];
+}
+
+export interface GetChatroomSummaryRequest {
+  chatroomId: string;
+  userId: string;
+}
+
+export interface GetChatroomSummaryResponse {
+  message: string;
+  success: boolean;
+  chatroom?: ChatroomSummary | undefined;
+  status: number;
 }
 
 export interface GetChatroomsRequest {
   userId: string;
-}
-
-export interface LastMessage {
-  publicId: string;
-  text: string;
-  by: string;
-  createdAt: string;
-  previewText: string;
-}
-
-export interface ChatroomSummary {
-  chatroomId: string;
-  participants: UserDetails[];
-  lastMessage?: LastMessage | undefined;
-  name?: string | undefined;
-  description?: string | undefined;
-  icon?: string | undefined;
-  type: string;
-  referenceId: string;
-  createdAt: string;
 }
 
 export interface GetChatroomsResponse {
@@ -161,6 +158,82 @@ export const GetChatroomIdsRequest: MessageFns<GetChatroomIdsRequest> = {
   },
 };
 
+function createBaseChatroomInfo(): ChatroomInfo {
+  return { chatroomId: "", isBlocked: false };
+}
+
+export const ChatroomInfo: MessageFns<ChatroomInfo> = {
+  encode(message: ChatroomInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.chatroomId !== "") {
+      writer.uint32(10).string(message.chatroomId);
+    }
+    if (message.isBlocked !== false) {
+      writer.uint32(16).bool(message.isBlocked);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ChatroomInfo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChatroomInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.chatroomId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.isBlocked = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChatroomInfo {
+    return {
+      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
+      isBlocked: isSet(object.isBlocked) ? globalThis.Boolean(object.isBlocked) : false,
+    };
+  },
+
+  toJSON(message: ChatroomInfo): unknown {
+    const obj: any = {};
+    if (message.chatroomId !== "") {
+      obj.chatroomId = message.chatroomId;
+    }
+    if (message.isBlocked !== false) {
+      obj.isBlocked = message.isBlocked;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ChatroomInfo>, I>>(base?: I): ChatroomInfo {
+    return ChatroomInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ChatroomInfo>, I>>(object: I): ChatroomInfo {
+    const message = createBaseChatroomInfo();
+    message.chatroomId = object.chatroomId ?? "";
+    message.isBlocked = object.isBlocked ?? false;
+    return message;
+  },
+};
+
 function createBaseGetChatroomIdsResponse(): GetChatroomIdsResponse {
   return { message: "", success: false, chatrooms: [] };
 }
@@ -174,7 +247,7 @@ export const GetChatroomIdsResponse: MessageFns<GetChatroomIdsResponse> = {
       writer.uint32(16).bool(message.success);
     }
     for (const v of message.chatrooms) {
-      writer.uint32(26).string(v!);
+      ChatroomInfo.encode(v!, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -207,7 +280,7 @@ export const GetChatroomIdsResponse: MessageFns<GetChatroomIdsResponse> = {
             break;
           }
 
-          message.chatrooms.push(reader.string());
+          message.chatrooms.push(ChatroomInfo.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -224,7 +297,7 @@ export const GetChatroomIdsResponse: MessageFns<GetChatroomIdsResponse> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       chatrooms: globalThis.Array.isArray(object?.chatrooms)
-        ? object.chatrooms.map((e: any) => globalThis.String(e))
+        ? object.chatrooms.map((e: any) => ChatroomInfo.fromJSON(e))
         : [],
     };
   },
@@ -238,7 +311,7 @@ export const GetChatroomIdsResponse: MessageFns<GetChatroomIdsResponse> = {
       obj.success = message.success;
     }
     if (message.chatrooms?.length) {
-      obj.chatrooms = message.chatrooms;
+      obj.chatrooms = message.chatrooms.map((e) => ChatroomInfo.toJSON(e));
     }
     return obj;
   },
@@ -250,7 +323,193 @@ export const GetChatroomIdsResponse: MessageFns<GetChatroomIdsResponse> = {
     const message = createBaseGetChatroomIdsResponse();
     message.message = object.message ?? "";
     message.success = object.success ?? false;
-    message.chatrooms = object.chatrooms?.map((e) => e) || [];
+    message.chatrooms = object.chatrooms?.map((e) => ChatroomInfo.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGetChatroomSummaryRequest(): GetChatroomSummaryRequest {
+  return { chatroomId: "", userId: "" };
+}
+
+export const GetChatroomSummaryRequest: MessageFns<GetChatroomSummaryRequest> = {
+  encode(message: GetChatroomSummaryRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.chatroomId !== "") {
+      writer.uint32(10).string(message.chatroomId);
+    }
+    if (message.userId !== "") {
+      writer.uint32(18).string(message.userId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetChatroomSummaryRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetChatroomSummaryRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.chatroomId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetChatroomSummaryRequest {
+    return {
+      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+    };
+  },
+
+  toJSON(message: GetChatroomSummaryRequest): unknown {
+    const obj: any = {};
+    if (message.chatroomId !== "") {
+      obj.chatroomId = message.chatroomId;
+    }
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetChatroomSummaryRequest>, I>>(base?: I): GetChatroomSummaryRequest {
+    return GetChatroomSummaryRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetChatroomSummaryRequest>, I>>(object: I): GetChatroomSummaryRequest {
+    const message = createBaseGetChatroomSummaryRequest();
+    message.chatroomId = object.chatroomId ?? "";
+    message.userId = object.userId ?? "";
+    return message;
+  },
+};
+
+function createBaseGetChatroomSummaryResponse(): GetChatroomSummaryResponse {
+  return { message: "", success: false, chatroom: undefined, status: 0 };
+}
+
+export const GetChatroomSummaryResponse: MessageFns<GetChatroomSummaryResponse> = {
+  encode(message: GetChatroomSummaryResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    if (message.success !== false) {
+      writer.uint32(16).bool(message.success);
+    }
+    if (message.chatroom !== undefined) {
+      ChatroomSummary.encode(message.chatroom, writer.uint32(26).fork()).join();
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetChatroomSummaryResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetChatroomSummaryResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.chatroom = ChatroomSummary.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetChatroomSummaryResponse {
+    return {
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      chatroom: isSet(object.chatroom) ? ChatroomSummary.fromJSON(object.chatroom) : undefined,
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
+    };
+  },
+
+  toJSON(message: GetChatroomSummaryResponse): unknown {
+    const obj: any = {};
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.chatroom !== undefined) {
+      obj.chatroom = ChatroomSummary.toJSON(message.chatroom);
+    }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetChatroomSummaryResponse>, I>>(base?: I): GetChatroomSummaryResponse {
+    return GetChatroomSummaryResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetChatroomSummaryResponse>, I>>(object: I): GetChatroomSummaryResponse {
+    const message = createBaseGetChatroomSummaryResponse();
+    message.message = object.message ?? "";
+    message.success = object.success ?? false;
+    message.chatroom = (object.chatroom !== undefined && object.chatroom !== null)
+      ? ChatroomSummary.fromPartial(object.chatroom)
+      : undefined;
+    message.status = object.status ?? 0;
     return message;
   },
 };
@@ -309,332 +568,6 @@ export const GetChatroomsRequest: MessageFns<GetChatroomsRequest> = {
   fromPartial<I extends Exact<DeepPartial<GetChatroomsRequest>, I>>(object: I): GetChatroomsRequest {
     const message = createBaseGetChatroomsRequest();
     message.userId = object.userId ?? "";
-    return message;
-  },
-};
-
-function createBaseLastMessage(): LastMessage {
-  return { publicId: "", text: "", by: "", createdAt: "", previewText: "" };
-}
-
-export const LastMessage: MessageFns<LastMessage> = {
-  encode(message: LastMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.publicId !== "") {
-      writer.uint32(10).string(message.publicId);
-    }
-    if (message.text !== "") {
-      writer.uint32(18).string(message.text);
-    }
-    if (message.by !== "") {
-      writer.uint32(26).string(message.by);
-    }
-    if (message.createdAt !== "") {
-      writer.uint32(34).string(message.createdAt);
-    }
-    if (message.previewText !== "") {
-      writer.uint32(42).string(message.previewText);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): LastMessage {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseLastMessage();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.publicId = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.text = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.by = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.createdAt = reader.string();
-          continue;
-        }
-        case 5: {
-          if (tag !== 42) {
-            break;
-          }
-
-          message.previewText = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): LastMessage {
-    return {
-      publicId: isSet(object.publicId) ? globalThis.String(object.publicId) : "",
-      text: isSet(object.text) ? globalThis.String(object.text) : "",
-      by: isSet(object.by) ? globalThis.String(object.by) : "",
-      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
-      previewText: isSet(object.previewText) ? globalThis.String(object.previewText) : "",
-    };
-  },
-
-  toJSON(message: LastMessage): unknown {
-    const obj: any = {};
-    if (message.publicId !== "") {
-      obj.publicId = message.publicId;
-    }
-    if (message.text !== "") {
-      obj.text = message.text;
-    }
-    if (message.by !== "") {
-      obj.by = message.by;
-    }
-    if (message.createdAt !== "") {
-      obj.createdAt = message.createdAt;
-    }
-    if (message.previewText !== "") {
-      obj.previewText = message.previewText;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<LastMessage>, I>>(base?: I): LastMessage {
-    return LastMessage.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<LastMessage>, I>>(object: I): LastMessage {
-    const message = createBaseLastMessage();
-    message.publicId = object.publicId ?? "";
-    message.text = object.text ?? "";
-    message.by = object.by ?? "";
-    message.createdAt = object.createdAt ?? "";
-    message.previewText = object.previewText ?? "";
-    return message;
-  },
-};
-
-function createBaseChatroomSummary(): ChatroomSummary {
-  return {
-    chatroomId: "",
-    participants: [],
-    lastMessage: undefined,
-    name: undefined,
-    description: undefined,
-    icon: undefined,
-    type: "",
-    referenceId: "",
-    createdAt: "",
-  };
-}
-
-export const ChatroomSummary: MessageFns<ChatroomSummary> = {
-  encode(message: ChatroomSummary, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.chatroomId !== "") {
-      writer.uint32(10).string(message.chatroomId);
-    }
-    for (const v of message.participants) {
-      UserDetails.encode(v!, writer.uint32(18).fork()).join();
-    }
-    if (message.lastMessage !== undefined) {
-      LastMessage.encode(message.lastMessage, writer.uint32(26).fork()).join();
-    }
-    if (message.name !== undefined) {
-      writer.uint32(34).string(message.name);
-    }
-    if (message.description !== undefined) {
-      writer.uint32(42).string(message.description);
-    }
-    if (message.icon !== undefined) {
-      writer.uint32(50).string(message.icon);
-    }
-    if (message.type !== "") {
-      writer.uint32(58).string(message.type);
-    }
-    if (message.referenceId !== "") {
-      writer.uint32(66).string(message.referenceId);
-    }
-    if (message.createdAt !== "") {
-      writer.uint32(74).string(message.createdAt);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): ChatroomSummary {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseChatroomSummary();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.chatroomId = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.participants.push(UserDetails.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.lastMessage = LastMessage.decode(reader, reader.uint32());
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        }
-        case 5: {
-          if (tag !== 42) {
-            break;
-          }
-
-          message.description = reader.string();
-          continue;
-        }
-        case 6: {
-          if (tag !== 50) {
-            break;
-          }
-
-          message.icon = reader.string();
-          continue;
-        }
-        case 7: {
-          if (tag !== 58) {
-            break;
-          }
-
-          message.type = reader.string();
-          continue;
-        }
-        case 8: {
-          if (tag !== 66) {
-            break;
-          }
-
-          message.referenceId = reader.string();
-          continue;
-        }
-        case 9: {
-          if (tag !== 74) {
-            break;
-          }
-
-          message.createdAt = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ChatroomSummary {
-    return {
-      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
-      participants: globalThis.Array.isArray(object?.participants)
-        ? object.participants.map((e: any) => UserDetails.fromJSON(e))
-        : [],
-      lastMessage: isSet(object.lastMessage) ? LastMessage.fromJSON(object.lastMessage) : undefined,
-      name: isSet(object.name) ? globalThis.String(object.name) : undefined,
-      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
-      icon: isSet(object.icon) ? globalThis.String(object.icon) : undefined,
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
-      referenceId: isSet(object.referenceId) ? globalThis.String(object.referenceId) : "",
-      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
-    };
-  },
-
-  toJSON(message: ChatroomSummary): unknown {
-    const obj: any = {};
-    if (message.chatroomId !== "") {
-      obj.chatroomId = message.chatroomId;
-    }
-    if (message.participants?.length) {
-      obj.participants = message.participants.map((e) => UserDetails.toJSON(e));
-    }
-    if (message.lastMessage !== undefined) {
-      obj.lastMessage = LastMessage.toJSON(message.lastMessage);
-    }
-    if (message.name !== undefined) {
-      obj.name = message.name;
-    }
-    if (message.description !== undefined) {
-      obj.description = message.description;
-    }
-    if (message.icon !== undefined) {
-      obj.icon = message.icon;
-    }
-    if (message.type !== "") {
-      obj.type = message.type;
-    }
-    if (message.referenceId !== "") {
-      obj.referenceId = message.referenceId;
-    }
-    if (message.createdAt !== "") {
-      obj.createdAt = message.createdAt;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ChatroomSummary>, I>>(base?: I): ChatroomSummary {
-    return ChatroomSummary.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ChatroomSummary>, I>>(object: I): ChatroomSummary {
-    const message = createBaseChatroomSummary();
-    message.chatroomId = object.chatroomId ?? "";
-    message.participants = object.participants?.map((e) => UserDetails.fromPartial(e)) || [];
-    message.lastMessage = (object.lastMessage !== undefined && object.lastMessage !== null)
-      ? LastMessage.fromPartial(object.lastMessage)
-      : undefined;
-    message.name = object.name ?? undefined;
-    message.description = object.description ?? undefined;
-    message.icon = object.icon ?? undefined;
-    message.type = object.type ?? "";
-    message.referenceId = object.referenceId ?? "";
-    message.createdAt = object.createdAt ?? "";
     return message;
   },
 };
@@ -1425,6 +1358,17 @@ export const ChatroomService = {
       Buffer.from(GetChatroomsResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer): GetChatroomsResponse => GetChatroomsResponse.decode(value),
   },
+  getChatroomSummary: {
+    path: "/chatroom.Chatroom/GetChatroomSummary" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: GetChatroomSummaryRequest): Buffer =>
+      Buffer.from(GetChatroomSummaryRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GetChatroomSummaryRequest => GetChatroomSummaryRequest.decode(value),
+    responseSerialize: (value: GetChatroomSummaryResponse): Buffer =>
+      Buffer.from(GetChatroomSummaryResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GetChatroomSummaryResponse => GetChatroomSummaryResponse.decode(value),
+  },
   getChatroom: {
     path: "/chatroom.Chatroom/GetChatroom" as const,
     requestStream: false as const,
@@ -1461,6 +1405,7 @@ export const ChatroomService = {
 export interface ChatroomServer extends UntypedServiceImplementation {
   healthCheck: handleUnaryCall<HealthCheckRequest, HealthCheckResponse>;
   getChatrooms: handleUnaryCall<GetChatroomsRequest, GetChatroomsResponse>;
+  getChatroomSummary: handleUnaryCall<GetChatroomSummaryRequest, GetChatroomSummaryResponse>;
   getChatroom: handleUnaryCall<GetChatroomRequest, GetChatroomResponse>;
   createChatroom: handleUnaryCall<CreateChatroomRequest, CreateChatroomResponse>;
   getChatroomIds: handleUnaryCall<GetChatroomIdsRequest, GetChatroomIdsResponse>;
@@ -1496,6 +1441,21 @@ export interface ChatroomClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: GetChatroomsResponse) => void,
+  ): ClientUnaryCall;
+  getChatroomSummary(
+    request: GetChatroomSummaryRequest,
+    callback: (error: ServiceError | null, response: GetChatroomSummaryResponse) => void,
+  ): ClientUnaryCall;
+  getChatroomSummary(
+    request: GetChatroomSummaryRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: GetChatroomSummaryResponse) => void,
+  ): ClientUnaryCall;
+  getChatroomSummary(
+    request: GetChatroomSummaryRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: GetChatroomSummaryResponse) => void,
   ): ClientUnaryCall;
   getChatroom(
     request: GetChatroomRequest,

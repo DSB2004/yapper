@@ -10,9 +10,9 @@ export default function ChatInput() {
   return (
     <InputProvider>
       <AttachmentPreview></AttachmentPreview>
-      <div className="border-t">
+      <div className="border-t  ">
         <Reply></Reply>
-        <div className="flex gap-2 px-3">
+        <div className="flex gap-2 px-3 ">
           <Attachment></Attachment>
 
           <Emoji></Emoji>

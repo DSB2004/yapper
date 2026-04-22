@@ -15,6 +15,8 @@ export const SOCKET_EVENTS = {
     DETAILS_CLIENT: "socket.common.connection-details.client",
     JOIN_CLIENT: "socket.common.join.client",
     LEAVE_CLIENT: "socket.common.leave.client",
+
+    NEW_CHATROOM_CLIENT: "socket.common.new-chatroom.client",
   },
   GROUP: {
     ADD: "socket.group.add",
@@ -30,6 +32,13 @@ export const SOCKET_EVENTS = {
     UPDATE_CLIENT: "socket.group.update.client",
     MAKE_ADMIN_CLIENT: "socket.group.make-admin.client",
     REMOVE_ADMIN_CLIENT: "socket.group.remove-admin.client",
+  },
+
+  CONTACT: {
+    BLOCK: "socket.chat.block",
+    UNBLOCK: "socket.chat.unblock",
+    BLOCK_CLIENT: "socket.chat.block.client",
+    UNBLOCK_CLIENT: "socket.chat.unblock.client",
   },
   MESSAGE: {
     ADD: "socket.message.add",

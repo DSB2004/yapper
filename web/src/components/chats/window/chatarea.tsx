@@ -5,6 +5,7 @@ import { MessageCard } from "./card";
 import { MessageSkeleton } from "./card/skeleton";
 import { useMessageStore } from "@/store/message.store";
 import Typing from "./ui";
+import { MessageSquare } from "lucide-react";
 
 export default function ChatArea() {
   const { data: messages, isLoading } = useMessageStore();
@@ -27,6 +28,19 @@ export default function ChatArea() {
             <MessageSkeleton key={i} align={i % 2 === 0 ? "left" : "right"} />
           ))}
 
+        {!isLoading && messages?.length === 0 && (
+          <div className="flex flex-col items-center justify-center w-full h-full">
+            <div className="text-center max-w-md px-6 space-y-4 text-muted-foreground">
+              <div className="flex items-center justify-center">
+                <MessageSquare className="size-10" />
+              </div>
+
+              <h2 className="text-xl font-medium">No messages yet</h2>
+
+              <p>Be the first to start the conversation in this chat.</p>
+            </div>
+          </div>
+        )}
         {!isLoading &&
           messages?.map((msg, idx) => (
             <MessageCard

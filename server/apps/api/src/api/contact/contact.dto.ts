@@ -13,3 +13,8 @@ export class CreateContactDto {
   @Length(10, 15)
   phone!: string;
 }
+
+export class BlockContactDto {
+  @IsString()
+  contactUserId!: string;
+}

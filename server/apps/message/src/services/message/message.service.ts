@@ -9,10 +9,14 @@ import {
   REACTION_MESSAGE_SOCKET_PAYLOAD,
   SEEN_MESSAGE_SOCKET_PAYLOAD,
   RECEIVED_MESSAGE_SOCKET_PAYLOAD,
+  GetUnreadCountRequest,
+  GetUnreadCountResponse,
+  BLOCK_STATUS_UPDATE,
 } from '@yapper/types';
 import { Model } from 'mongoose';
 import { Message } from 'src/models/message';
 import { GetMessageRequest, GetMessageResponse } from '@yapper/types';
+import { generateCuid } from '@yapper/utils';
 @Injectable()
 export class MessageService {
   private readonly logger = new Logger(MessageService.name);
@@ -25,6 +29,7 @@ export class MessageService {
     try {
       const messages = await this.messageRepo.find({
         chatroomId: payload.chatroom,
+        for: { $in: [payload.userId] },
       });
       return {
         message: 'Messages for chatroom',
@@ -39,6 +44,33 @@ export class MessageService {
         success: false,
         status: 500,
         data: [],
+      };
+    }
+  }
+
+  async getUnreadCountMessages(
+    payload: GetUnreadCountRequest,
+  ): Promise<GetUnreadCountResponse> {
+    try {
+      const unreadCount = await this.messageRepo.countDocuments({
+        chatroomId: payload.chatroom,
+        for: payload.userId,
+        seen: { $ne: payload.userId },
+        by: { $ne: payload.userId },
+      });
+      return {
+        message: 'Unread message count',
+        success: true,
+        status: 200,
+        unreadCount,
+      };
+    } catch (err) {
+      this.logger.error('Failed to GET message', err);
+      return {
+        message: 'Failed to get unread message count',
+        success: false,
+        status: 500,
+        unreadCount: 0,
       };
     }
   }
@@ -119,6 +151,18 @@ export class MessageService {
         { publicId: payload.messageId, chatroomId: payload.chatroomId },
         { isPinned: !message.isPinned },
       );
+      await this.messageRepo.create({
+        publicId: generateCuid('info'),
+        chatroomId: payload.chatroomId,
+        by: payload.pinnedBy,
+        isReply: false,
+        isForwarded: false,
+        text: message.isPinned ? 'UNPINNED' : 'PINNED',
+        type: 'INFO',
+        attachments: [],
+        createdAt: Date.now(),
+        for: payload.for,
+      });
     } catch (err) {
       this.logger.error('Failed to persist PIN message', err);
     }
@@ -187,6 +231,7 @@ export class MessageService {
           },
         },
       );
+      console.log('[MESSAGE][SEEN]', payload.seenBy, payload.messageId);
     } catch (err) {
       this.logger.error('Failed to persist SEEN message', err);
     }
@@ -204,6 +249,43 @@ export class MessageService {
       );
     } catch (err) {
       this.logger.error('Failed to persist RECEIVED message', err);
+    }
+  }
+
+  async blockUserMessage(payload: BLOCK_STATUS_UPDATE) {
+    try {
+      await this.messageRepo.create({
+        publicId: generateCuid('info'),
+        chatroomId: payload.chatroomId,
+        by: payload.userId,
+        isReply: false,
+        isForwarded: false,
+        text: 'BLOCK',
+        type: 'INFO',
+        attachments: [],
+        createdAt: Date.now(),
+        for: [payload.userId],
+      });
+    } catch (err) {
+      this.logger.error('Failed to persist BLOCK message', err);
+    }
+  }
+  async unBlockUserMessage(payload: BLOCK_STATUS_UPDATE) {
+    try {
+      await this.messageRepo.create({
+        publicId: generateCuid('info'),
+        chatroomId: payload.chatroomId,
+        by: payload.userId,
+        isReply: false,
+        isForwarded: false,
+        text: 'UNBLOCK',
+        type: 'INFO',
+        attachments: [],
+        createdAt: Date.now(),
+        for: [payload.userId],
+      });
+    } catch (err) {
+      this.logger.error('Failed to persist UNBLOCK message', err);
     }
   }
 }

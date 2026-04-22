@@ -1,4 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class ChatroomConsumer {}
+export class ChatroomConsumer {
+
+    // console.log("hello")
+}

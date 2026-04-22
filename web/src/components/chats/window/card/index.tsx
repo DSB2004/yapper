@@ -1,7 +1,7 @@
 "use client";
 import { useChatroom } from "@/provider/chatroom.provider";
 import { useUserStore } from "@/store/user.store";
-import { Message } from "@/types/message";
+import { Message, MessageType } from "@/types/message";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Time from "../../common/time";
 import ContextWrapper from "./context";
@@ -9,6 +9,7 @@ import MessageProviderWrapper from "./provider";
 import Position from "./position";
 import Container from "./container";
 import Attachment from "./attachment";
+import InfoMessage from "./info-message";
 export function MessageCard({
   next,
   msg,
@@ -16,6 +17,10 @@ export function MessageCard({
   next: Message | null;
   msg: Message;
 }) {
+  // @ts-ignore
+  if (msg.type === MessageType.INFO || msg.type === 1) {
+    return <InfoMessage {...msg} />;
+  }
   return (
     <div id={msg.publicId} className="p-2">
       <MessageProviderWrapper next={next} msg={msg}>

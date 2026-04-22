@@ -34,6 +34,30 @@ export interface HealthCheckResponse {
   status: number;
 }
 
+export interface LastMessage {
+  publicId: string;
+  text: string;
+  by: string;
+  createdAt: string;
+  previewText: string;
+}
+
+export interface ChatroomSummary {
+  chatroomId: string;
+  participants: UserDetails[];
+  lastMessage?: LastMessage | undefined;
+  name?: string | undefined;
+  description?: string | undefined;
+  icon?: string | undefined;
+  type: string;
+  referenceId: string;
+  createdAt: string;
+  unreadCount: number;
+  createdBy: UserDetails | undefined;
+  isBlocked: boolean;
+  areYouBlocked: boolean;
+}
+
 function createBaseEmpty(): Empty {
   return {};
 }
@@ -410,6 +434,402 @@ export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
     message.message = object.message ?? "";
     message.success = object.success ?? false;
     message.status = object.status ?? 0;
+    return message;
+  },
+};
+
+function createBaseLastMessage(): LastMessage {
+  return { publicId: "", text: "", by: "", createdAt: "", previewText: "" };
+}
+
+export const LastMessage: MessageFns<LastMessage> = {
+  encode(message: LastMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.publicId !== "") {
+      writer.uint32(10).string(message.publicId);
+    }
+    if (message.text !== "") {
+      writer.uint32(18).string(message.text);
+    }
+    if (message.by !== "") {
+      writer.uint32(26).string(message.by);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(34).string(message.createdAt);
+    }
+    if (message.previewText !== "") {
+      writer.uint32(42).string(message.previewText);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LastMessage {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLastMessage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.publicId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.text = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.by = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.previewText = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LastMessage {
+    return {
+      publicId: isSet(object.publicId) ? globalThis.String(object.publicId) : "",
+      text: isSet(object.text) ? globalThis.String(object.text) : "",
+      by: isSet(object.by) ? globalThis.String(object.by) : "",
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      previewText: isSet(object.previewText) ? globalThis.String(object.previewText) : "",
+    };
+  },
+
+  toJSON(message: LastMessage): unknown {
+    const obj: any = {};
+    if (message.publicId !== "") {
+      obj.publicId = message.publicId;
+    }
+    if (message.text !== "") {
+      obj.text = message.text;
+    }
+    if (message.by !== "") {
+      obj.by = message.by;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.previewText !== "") {
+      obj.previewText = message.previewText;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LastMessage>, I>>(base?: I): LastMessage {
+    return LastMessage.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LastMessage>, I>>(object: I): LastMessage {
+    const message = createBaseLastMessage();
+    message.publicId = object.publicId ?? "";
+    message.text = object.text ?? "";
+    message.by = object.by ?? "";
+    message.createdAt = object.createdAt ?? "";
+    message.previewText = object.previewText ?? "";
+    return message;
+  },
+};
+
+function createBaseChatroomSummary(): ChatroomSummary {
+  return {
+    chatroomId: "",
+    participants: [],
+    lastMessage: undefined,
+    name: undefined,
+    description: undefined,
+    icon: undefined,
+    type: "",
+    referenceId: "",
+    createdAt: "",
+    unreadCount: 0,
+    createdBy: undefined,
+    isBlocked: false,
+    areYouBlocked: false,
+  };
+}
+
+export const ChatroomSummary: MessageFns<ChatroomSummary> = {
+  encode(message: ChatroomSummary, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.chatroomId !== "") {
+      writer.uint32(10).string(message.chatroomId);
+    }
+    for (const v of message.participants) {
+      UserDetails.encode(v!, writer.uint32(18).fork()).join();
+    }
+    if (message.lastMessage !== undefined) {
+      LastMessage.encode(message.lastMessage, writer.uint32(26).fork()).join();
+    }
+    if (message.name !== undefined) {
+      writer.uint32(34).string(message.name);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(42).string(message.description);
+    }
+    if (message.icon !== undefined) {
+      writer.uint32(50).string(message.icon);
+    }
+    if (message.type !== "") {
+      writer.uint32(58).string(message.type);
+    }
+    if (message.referenceId !== "") {
+      writer.uint32(66).string(message.referenceId);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(74).string(message.createdAt);
+    }
+    if (message.unreadCount !== 0) {
+      writer.uint32(80).int32(message.unreadCount);
+    }
+    if (message.createdBy !== undefined) {
+      UserDetails.encode(message.createdBy, writer.uint32(90).fork()).join();
+    }
+    if (message.isBlocked !== false) {
+      writer.uint32(96).bool(message.isBlocked);
+    }
+    if (message.areYouBlocked !== false) {
+      writer.uint32(104).bool(message.areYouBlocked);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ChatroomSummary {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChatroomSummary();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.chatroomId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.participants.push(UserDetails.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.lastMessage = LastMessage.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.icon = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.referenceId = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.unreadCount = reader.int32();
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.createdBy = UserDetails.decode(reader, reader.uint32());
+          continue;
+        }
+        case 12: {
+          if (tag !== 96) {
+            break;
+          }
+
+          message.isBlocked = reader.bool();
+          continue;
+        }
+        case 13: {
+          if (tag !== 104) {
+            break;
+          }
+
+          message.areYouBlocked = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChatroomSummary {
+    return {
+      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
+      participants: globalThis.Array.isArray(object?.participants)
+        ? object.participants.map((e: any) => UserDetails.fromJSON(e))
+        : [],
+      lastMessage: isSet(object.lastMessage) ? LastMessage.fromJSON(object.lastMessage) : undefined,
+      name: isSet(object.name) ? globalThis.String(object.name) : undefined,
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
+      icon: isSet(object.icon) ? globalThis.String(object.icon) : undefined,
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      referenceId: isSet(object.referenceId) ? globalThis.String(object.referenceId) : "",
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      unreadCount: isSet(object.unreadCount) ? globalThis.Number(object.unreadCount) : 0,
+      createdBy: isSet(object.createdBy) ? UserDetails.fromJSON(object.createdBy) : undefined,
+      isBlocked: isSet(object.isBlocked) ? globalThis.Boolean(object.isBlocked) : false,
+      areYouBlocked: isSet(object.areYouBlocked) ? globalThis.Boolean(object.areYouBlocked) : false,
+    };
+  },
+
+  toJSON(message: ChatroomSummary): unknown {
+    const obj: any = {};
+    if (message.chatroomId !== "") {
+      obj.chatroomId = message.chatroomId;
+    }
+    if (message.participants?.length) {
+      obj.participants = message.participants.map((e) => UserDetails.toJSON(e));
+    }
+    if (message.lastMessage !== undefined) {
+      obj.lastMessage = LastMessage.toJSON(message.lastMessage);
+    }
+    if (message.name !== undefined) {
+      obj.name = message.name;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.icon !== undefined) {
+      obj.icon = message.icon;
+    }
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
+    if (message.referenceId !== "") {
+      obj.referenceId = message.referenceId;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.unreadCount !== 0) {
+      obj.unreadCount = Math.round(message.unreadCount);
+    }
+    if (message.createdBy !== undefined) {
+      obj.createdBy = UserDetails.toJSON(message.createdBy);
+    }
+    if (message.isBlocked !== false) {
+      obj.isBlocked = message.isBlocked;
+    }
+    if (message.areYouBlocked !== false) {
+      obj.areYouBlocked = message.areYouBlocked;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ChatroomSummary>, I>>(base?: I): ChatroomSummary {
+    return ChatroomSummary.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ChatroomSummary>, I>>(object: I): ChatroomSummary {
+    const message = createBaseChatroomSummary();
+    message.chatroomId = object.chatroomId ?? "";
+    message.participants = object.participants?.map((e) => UserDetails.fromPartial(e)) || [];
+    message.lastMessage = (object.lastMessage !== undefined && object.lastMessage !== null)
+      ? LastMessage.fromPartial(object.lastMessage)
+      : undefined;
+    message.name = object.name ?? undefined;
+    message.description = object.description ?? undefined;
+    message.icon = object.icon ?? undefined;
+    message.type = object.type ?? "";
+    message.referenceId = object.referenceId ?? "";
+    message.createdAt = object.createdAt ?? "";
+    message.unreadCount = object.unreadCount ?? 0;
+    message.createdBy = (object.createdBy !== undefined && object.createdBy !== null)
+      ? UserDetails.fromPartial(object.createdBy)
+      : undefined;
+    message.isBlocked = object.isBlocked ?? false;
+    message.areYouBlocked = object.areYouBlocked ?? false;
     return message;
   },
 };

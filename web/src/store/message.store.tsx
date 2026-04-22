@@ -47,7 +47,7 @@ function MessageStoreContent({ children }: { children: React.ReactNode }) {
       return res.messages;
     },
     enabled: !!chatroom,
-    staleTime: 1000 * 60 * 5,
+    staleTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

@@ -10,8 +10,8 @@ export interface MessageReaction {
 }
 
 export enum MessageType {
-  GENERAL = 0,
-  INFO = 1,
+  GENERAL = "GENERAL",
+  INFO = "INFO",
   UNRECOGNIZED = -1,
 }
 
@@ -35,4 +35,11 @@ export interface Message {
   isForwarded: boolean;
   isReply: boolean;
   replyFor?: string | undefined;
+}
+
+export enum InfoEvent {
+  BLOCK = "BLOCK",
+  UNBLOCK = "UNBLOCK",
+  UNPINNED = "UNPINNED",
+  PINNED = "PINNED",
 }

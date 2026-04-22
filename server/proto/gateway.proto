@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package gateway;
+
+import "common.proto";
+
+
+service Gateway {
+ rpc HealthCheck (common.HealthCheckRequest) returns (common.HealthCheckResponse);
+  rpc AddUsersToChatroom(AddUsersToChatroomRequest) returns (AddUsersToChatroomResponse);
+    rpc RemoveUsersFromChatroom(RemoveUsersFromChatroomRequest) returns (RemoveUsersFromChatroomResponse);
+}
+
+
+message AddUsersToChatroomRequest {
+  string chatroom= 1;
+  repeated string userIds=2;
+}
+
+message AddUsersToChatroomResponse {
+  string message=1;
+}
+
+message RemoveUsersFromChatroomRequest{
+  string chatroom = 1;
+  repeated string userIds=2;
+}
+message RemoveUsersFromChatroomResponse {
+  string message=1;
+}
+
+

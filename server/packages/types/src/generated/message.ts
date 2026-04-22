@@ -55,8 +55,21 @@ export function messageTypeToJSON(object: MessageType): string {
   }
 }
 
+export interface GetUnreadCountRequest {
+  chatroom: string;
+  userId: string;
+}
+
+export interface GetUnreadCountResponse {
+  message: string;
+  success: boolean;
+  status: number;
+  unreadCount: number;
+}
+
 export interface GetMessageRequest {
   chatroom: string;
+  userId: string;
 }
 
 export interface MessageAttachment {
@@ -99,14 +112,201 @@ export interface GetMessageResponse {
   data: MessagePayload[];
 }
 
+function createBaseGetUnreadCountRequest(): GetUnreadCountRequest {
+  return { chatroom: "", userId: "" };
+}
+
+export const GetUnreadCountRequest: MessageFns<GetUnreadCountRequest> = {
+  encode(message: GetUnreadCountRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.chatroom !== "") {
+      writer.uint32(10).string(message.chatroom);
+    }
+    if (message.userId !== "") {
+      writer.uint32(18).string(message.userId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUnreadCountRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUnreadCountRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.chatroom = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUnreadCountRequest {
+    return {
+      chatroom: isSet(object.chatroom) ? globalThis.String(object.chatroom) : "",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+    };
+  },
+
+  toJSON(message: GetUnreadCountRequest): unknown {
+    const obj: any = {};
+    if (message.chatroom !== "") {
+      obj.chatroom = message.chatroom;
+    }
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUnreadCountRequest>, I>>(base?: I): GetUnreadCountRequest {
+    return GetUnreadCountRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUnreadCountRequest>, I>>(object: I): GetUnreadCountRequest {
+    const message = createBaseGetUnreadCountRequest();
+    message.chatroom = object.chatroom ?? "";
+    message.userId = object.userId ?? "";
+    return message;
+  },
+};
+
+function createBaseGetUnreadCountResponse(): GetUnreadCountResponse {
+  return { message: "", success: false, status: 0, unreadCount: 0 };
+}
+
+export const GetUnreadCountResponse: MessageFns<GetUnreadCountResponse> = {
+  encode(message: GetUnreadCountResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    if (message.success !== false) {
+      writer.uint32(16).bool(message.success);
+    }
+    if (message.status !== 0) {
+      writer.uint32(24).int32(message.status);
+    }
+    if (message.unreadCount !== 0) {
+      writer.uint32(32).int32(message.unreadCount);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUnreadCountResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUnreadCountResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.unreadCount = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUnreadCountResponse {
+    return {
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
+      unreadCount: isSet(object.unreadCount) ? globalThis.Number(object.unreadCount) : 0,
+    };
+  },
+
+  toJSON(message: GetUnreadCountResponse): unknown {
+    const obj: any = {};
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
+    if (message.unreadCount !== 0) {
+      obj.unreadCount = Math.round(message.unreadCount);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUnreadCountResponse>, I>>(base?: I): GetUnreadCountResponse {
+    return GetUnreadCountResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUnreadCountResponse>, I>>(object: I): GetUnreadCountResponse {
+    const message = createBaseGetUnreadCountResponse();
+    message.message = object.message ?? "";
+    message.success = object.success ?? false;
+    message.status = object.status ?? 0;
+    message.unreadCount = object.unreadCount ?? 0;
+    return message;
+  },
+};
+
 function createBaseGetMessageRequest(): GetMessageRequest {
-  return { chatroom: "" };
+  return { chatroom: "", userId: "" };
 }
 
 export const GetMessageRequest: MessageFns<GetMessageRequest> = {
   encode(message: GetMessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.chatroom !== "") {
       writer.uint32(10).string(message.chatroom);
+    }
+    if (message.userId !== "") {
+      writer.uint32(18).string(message.userId);
     }
     return writer;
   },
@@ -126,6 +326,14 @@ export const GetMessageRequest: MessageFns<GetMessageRequest> = {
           message.chatroom = reader.string();
           continue;
         }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -136,13 +344,19 @@ export const GetMessageRequest: MessageFns<GetMessageRequest> = {
   },
 
   fromJSON(object: any): GetMessageRequest {
-    return { chatroom: isSet(object.chatroom) ? globalThis.String(object.chatroom) : "" };
+    return {
+      chatroom: isSet(object.chatroom) ? globalThis.String(object.chatroom) : "",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+    };
   },
 
   toJSON(message: GetMessageRequest): unknown {
     const obj: any = {};
     if (message.chatroom !== "") {
       obj.chatroom = message.chatroom;
+    }
+    if (message.userId !== "") {
+      obj.userId = message.userId;
     }
     return obj;
   },
@@ -153,6 +367,7 @@ export const GetMessageRequest: MessageFns<GetMessageRequest> = {
   fromPartial<I extends Exact<DeepPartial<GetMessageRequest>, I>>(object: I): GetMessageRequest {
     const message = createBaseGetMessageRequest();
     message.chatroom = object.chatroom ?? "";
+    message.userId = object.userId ?? "";
     return message;
   },
 };
@@ -825,11 +1040,23 @@ export const MessageService = {
     responseSerialize: (value: GetMessageResponse): Buffer => Buffer.from(GetMessageResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer): GetMessageResponse => GetMessageResponse.decode(value),
   },
+  getUnreadCount: {
+    path: "/message.Message/GetUnreadCount" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: GetUnreadCountRequest): Buffer =>
+      Buffer.from(GetUnreadCountRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GetUnreadCountRequest => GetUnreadCountRequest.decode(value),
+    responseSerialize: (value: GetUnreadCountResponse): Buffer =>
+      Buffer.from(GetUnreadCountResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GetUnreadCountResponse => GetUnreadCountResponse.decode(value),
+  },
 } as const;
 
 export interface MessageServer extends UntypedServiceImplementation {
   healthCheck: handleUnaryCall<HealthCheckRequest, HealthCheckResponse>;
   getMessages: handleUnaryCall<GetMessageRequest, GetMessageResponse>;
+  getUnreadCount: handleUnaryCall<GetUnreadCountRequest, GetUnreadCountResponse>;
 }
 
 export interface MessageClient extends Client {
@@ -862,6 +1089,21 @@ export interface MessageClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: GetMessageResponse) => void,
+  ): ClientUnaryCall;
+  getUnreadCount(
+    request: GetUnreadCountRequest,
+    callback: (error: ServiceError | null, response: GetUnreadCountResponse) => void,
+  ): ClientUnaryCall;
+  getUnreadCount(
+    request: GetUnreadCountRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: GetUnreadCountResponse) => void,
+  ): ClientUnaryCall;
+  getUnreadCount(
+    request: GetUnreadCountRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: GetUnreadCountResponse) => void,
   ): ClientUnaryCall;
 }
 

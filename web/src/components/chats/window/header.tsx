@@ -1,11 +1,12 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { useChatroom } from "@/provider/chatroom.provider";
 import { useUserStore } from "@/store/user.store";
 import React, { useMemo, useState } from "react";
 
 export default function ChatHeader() {
   // const [menuOpen, setMenuOpen] = useState(false);
-  const { chatroom: room, online, inChat, typing } = useChatroom();
+  const { chatroom: room, online, inChat, typing, blockUser } = useChatroom();
   const { data: user } = useUserStore();
   if (!room) return <></>;
 
@@ -22,6 +23,15 @@ export default function ChatHeader() {
       const other = room.participants.find(
         (ele) => ele.userId !== user?.userId,
       );
+      if (room.areYouBlocked && other) {
+        return {
+          icon: "/placeholder.webp",
+          name: "Yapper User",
+          userId: other.userId as string,
+          type: room.type,
+          online: false,
+        };
+      }
       if (other)
         return {
           icon: other.avatar,
@@ -118,7 +128,7 @@ export default function ChatHeader() {
       } others are in chat`;
     }
 
-    const names = others.map(formatName);
+    const names = room.participants.map(formatName);
 
     if (names.length <= 3) {
       return names.join(", ");
@@ -133,7 +143,7 @@ export default function ChatHeader() {
         <div className="relative">
           <img
             src={details.icon}
-            className={` ${details.online ? " border-primary  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-10 h-10 rounded-full object-cover`}
+            className={` ${!room.isBlocked && details.online ? " border-primary  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-10 h-10 rounded-full object-cover`}
           />
         </div>
         <div>
@@ -142,10 +152,20 @@ export default function ChatHeader() {
           {/* <p className="text-xs text-muted-foreground">online</p> */}
         </div>
       </div>
+      {room.type === "PERSONAL" && (
+        <>
+          <Button
+            onClick={async () => {
+              await blockUser();
+            }}
+            className="p-2"
+          >
+            {room.isBlocked ? "UnBlock" : "Block"}
+          </Button>
+        </>
+      )}
 
-      {/* <button onClick={() => setMenuOpen(!menuOpen)} className="p-2">
-        ⋮
-      </button>
+      {/* 
 
       {menuOpen && (
         <div className="absolute right-4 top-14 bg-background shadow-lg border rounded-md w-40 z-40 text-sm">

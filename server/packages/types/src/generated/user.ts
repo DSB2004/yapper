@@ -104,12 +104,23 @@ export interface CreateContactResponse {
 }
 
 export interface BlockContactRequest {
-  chatroomId: string;
+  contactUserId: string;
   authId: string;
 }
 
 export interface BlockContactResponse {
-  chatroomId: string;
+  success: boolean;
+  message: string;
+  status: number;
+}
+
+export interface CheckBlockRequest {
+  contactId: string;
+  userId: string;
+}
+
+export interface CheckBlockResponse {
+  isBlocked: boolean;
   success: boolean;
   message: string;
   status: number;
@@ -1420,13 +1431,13 @@ export const CreateContactResponse: MessageFns<CreateContactResponse> = {
 };
 
 function createBaseBlockContactRequest(): BlockContactRequest {
-  return { chatroomId: "", authId: "" };
+  return { contactUserId: "", authId: "" };
 }
 
 export const BlockContactRequest: MessageFns<BlockContactRequest> = {
   encode(message: BlockContactRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.chatroomId !== "") {
-      writer.uint32(10).string(message.chatroomId);
+    if (message.contactUserId !== "") {
+      writer.uint32(10).string(message.contactUserId);
     }
     if (message.authId !== "") {
       writer.uint32(18).string(message.authId);
@@ -1446,7 +1457,7 @@ export const BlockContactRequest: MessageFns<BlockContactRequest> = {
             break;
           }
 
-          message.chatroomId = reader.string();
+          message.contactUserId = reader.string();
           continue;
         }
         case 2: {
@@ -1468,15 +1479,15 @@ export const BlockContactRequest: MessageFns<BlockContactRequest> = {
 
   fromJSON(object: any): BlockContactRequest {
     return {
-      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
+      contactUserId: isSet(object.contactUserId) ? globalThis.String(object.contactUserId) : "",
       authId: isSet(object.authId) ? globalThis.String(object.authId) : "",
     };
   },
 
   toJSON(message: BlockContactRequest): unknown {
     const obj: any = {};
-    if (message.chatroomId !== "") {
-      obj.chatroomId = message.chatroomId;
+    if (message.contactUserId !== "") {
+      obj.contactUserId = message.contactUserId;
     }
     if (message.authId !== "") {
       obj.authId = message.authId;
@@ -1489,21 +1500,18 @@ export const BlockContactRequest: MessageFns<BlockContactRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<BlockContactRequest>, I>>(object: I): BlockContactRequest {
     const message = createBaseBlockContactRequest();
-    message.chatroomId = object.chatroomId ?? "";
+    message.contactUserId = object.contactUserId ?? "";
     message.authId = object.authId ?? "";
     return message;
   },
 };
 
 function createBaseBlockContactResponse(): BlockContactResponse {
-  return { chatroomId: "", success: false, message: "", status: 0 };
+  return { success: false, message: "", status: 0 };
 }
 
 export const BlockContactResponse: MessageFns<BlockContactResponse> = {
   encode(message: BlockContactResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.chatroomId !== "") {
-      writer.uint32(10).string(message.chatroomId);
-    }
     if (message.success !== false) {
       writer.uint32(16).bool(message.success);
     }
@@ -1523,14 +1531,6 @@ export const BlockContactResponse: MessageFns<BlockContactResponse> = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.chatroomId = reader.string();
-          continue;
-        }
         case 2: {
           if (tag !== 16) {
             break;
@@ -1566,7 +1566,6 @@ export const BlockContactResponse: MessageFns<BlockContactResponse> = {
 
   fromJSON(object: any): BlockContactResponse {
     return {
-      chatroomId: isSet(object.chatroomId) ? globalThis.String(object.chatroomId) : "",
       success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       status: isSet(object.status) ? globalThis.Number(object.status) : 0,
@@ -1575,9 +1574,6 @@ export const BlockContactResponse: MessageFns<BlockContactResponse> = {
 
   toJSON(message: BlockContactResponse): unknown {
     const obj: any = {};
-    if (message.chatroomId !== "") {
-      obj.chatroomId = message.chatroomId;
-    }
     if (message.success !== false) {
       obj.success = message.success;
     }
@@ -1595,7 +1591,190 @@ export const BlockContactResponse: MessageFns<BlockContactResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<BlockContactResponse>, I>>(object: I): BlockContactResponse {
     const message = createBaseBlockContactResponse();
-    message.chatroomId = object.chatroomId ?? "";
+    message.success = object.success ?? false;
+    message.message = object.message ?? "";
+    message.status = object.status ?? 0;
+    return message;
+  },
+};
+
+function createBaseCheckBlockRequest(): CheckBlockRequest {
+  return { contactId: "", userId: "" };
+}
+
+export const CheckBlockRequest: MessageFns<CheckBlockRequest> = {
+  encode(message: CheckBlockRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.contactId !== "") {
+      writer.uint32(10).string(message.contactId);
+    }
+    if (message.userId !== "") {
+      writer.uint32(18).string(message.userId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CheckBlockRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCheckBlockRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.contactId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CheckBlockRequest {
+    return {
+      contactId: isSet(object.contactId) ? globalThis.String(object.contactId) : "",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+    };
+  },
+
+  toJSON(message: CheckBlockRequest): unknown {
+    const obj: any = {};
+    if (message.contactId !== "") {
+      obj.contactId = message.contactId;
+    }
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CheckBlockRequest>, I>>(base?: I): CheckBlockRequest {
+    return CheckBlockRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CheckBlockRequest>, I>>(object: I): CheckBlockRequest {
+    const message = createBaseCheckBlockRequest();
+    message.contactId = object.contactId ?? "";
+    message.userId = object.userId ?? "";
+    return message;
+  },
+};
+
+function createBaseCheckBlockResponse(): CheckBlockResponse {
+  return { isBlocked: false, success: false, message: "", status: 0 };
+}
+
+export const CheckBlockResponse: MessageFns<CheckBlockResponse> = {
+  encode(message: CheckBlockResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.isBlocked !== false) {
+      writer.uint32(8).bool(message.isBlocked);
+    }
+    if (message.success !== false) {
+      writer.uint32(16).bool(message.success);
+    }
+    if (message.message !== "") {
+      writer.uint32(26).string(message.message);
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CheckBlockResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCheckBlockResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.isBlocked = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CheckBlockResponse {
+    return {
+      isBlocked: isSet(object.isBlocked) ? globalThis.Boolean(object.isBlocked) : false,
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      status: isSet(object.status) ? globalThis.Number(object.status) : 0,
+    };
+  },
+
+  toJSON(message: CheckBlockResponse): unknown {
+    const obj: any = {};
+    if (message.isBlocked !== false) {
+      obj.isBlocked = message.isBlocked;
+    }
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    if (message.status !== 0) {
+      obj.status = Math.round(message.status);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CheckBlockResponse>, I>>(base?: I): CheckBlockResponse {
+    return CheckBlockResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CheckBlockResponse>, I>>(object: I): CheckBlockResponse {
+    const message = createBaseCheckBlockResponse();
+    message.isBlocked = object.isBlocked ?? false;
     message.success = object.success ?? false;
     message.message = object.message ?? "";
     message.status = object.status ?? 0;
@@ -2695,6 +2874,25 @@ export const UserService = {
       Buffer.from(CreateContactResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer): CreateContactResponse => CreateContactResponse.decode(value),
   },
+  blockContact: {
+    path: "/user.User/BlockContact" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: BlockContactRequest): Buffer => Buffer.from(BlockContactRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): BlockContactRequest => BlockContactRequest.decode(value),
+    responseSerialize: (value: BlockContactResponse): Buffer =>
+      Buffer.from(BlockContactResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): BlockContactResponse => BlockContactResponse.decode(value),
+  },
+  checkBlockStatus: {
+    path: "/user.User/CheckBlockStatus" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: CheckBlockRequest): Buffer => Buffer.from(CheckBlockRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): CheckBlockRequest => CheckBlockRequest.decode(value),
+    responseSerialize: (value: CheckBlockResponse): Buffer => Buffer.from(CheckBlockResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): CheckBlockResponse => CheckBlockResponse.decode(value),
+  },
   createGroup: {
     path: "/user.User/CreateGroup" as const,
     requestStream: false as const,
@@ -2755,6 +2953,8 @@ export interface UserServer extends UntypedServiceImplementation {
   createUser: handleUnaryCall<CreateUserRequest, CreateUserResponse>;
   updateUser: handleUnaryCall<UpdateUserRequest, UpdateUserResponse>;
   createContact: handleUnaryCall<CreateContactRequest, CreateContactResponse>;
+  blockContact: handleUnaryCall<BlockContactRequest, BlockContactResponse>;
+  checkBlockStatus: handleUnaryCall<CheckBlockRequest, CheckBlockResponse>;
   createGroup: handleUnaryCall<CreateGroupRequest, CreateGroupResponse>;
   updateGroup: handleUnaryCall<UpdateGroupRequest, UpdateGroupResponse>;
   addGroupMember: handleUnaryCall<AddGroupMemberRequest, AddGroupMemberResponse>;
@@ -2882,6 +3082,36 @@ export interface UserClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: CreateContactResponse) => void,
+  ): ClientUnaryCall;
+  blockContact(
+    request: BlockContactRequest,
+    callback: (error: ServiceError | null, response: BlockContactResponse) => void,
+  ): ClientUnaryCall;
+  blockContact(
+    request: BlockContactRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: BlockContactResponse) => void,
+  ): ClientUnaryCall;
+  blockContact(
+    request: BlockContactRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: BlockContactResponse) => void,
+  ): ClientUnaryCall;
+  checkBlockStatus(
+    request: CheckBlockRequest,
+    callback: (error: ServiceError | null, response: CheckBlockResponse) => void,
+  ): ClientUnaryCall;
+  checkBlockStatus(
+    request: CheckBlockRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: CheckBlockResponse) => void,
+  ): ClientUnaryCall;
+  checkBlockStatus(
+    request: CheckBlockRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: CheckBlockResponse) => void,
   ): ClientUnaryCall;
   createGroup(
     request: CreateGroupRequest,

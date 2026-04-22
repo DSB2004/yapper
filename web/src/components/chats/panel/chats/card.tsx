@@ -23,6 +23,15 @@ export default function Card({ room }: { room: Chatroom }) {
       const other = room.participants.find(
         (ele) => ele.userId !== user?.userId,
       );
+      if (room.areYouBlocked && other) {
+        return {
+          icon: "/placeholder.webp",
+          name: "Yapper User",
+          userId: other.userId as string,
+          type: room.type,
+          online: false,
+        };
+      }
       if (other)
         return {
           icon: other.avatar,
@@ -40,11 +49,8 @@ export default function Card({ room }: { room: Chatroom }) {
       online: false,
     };
   }, [user, room, online]);
-
-  useEffect(() => {
-    console.log(typing);
-  }, [typing]);
-
+  // console.log(room);
+  if (!room.lastMessage && room.createdBy.userId !== user?.userId) return <></>;
   return (
     <div
       onClick={() => join(room)}
@@ -55,11 +61,14 @@ export default function Card({ room }: { room: Chatroom }) {
       <div className="relative">
         <img
           src={details.icon}
-          className={` ${details.online ? " border-primary  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-12 h-12 rounded-full object-cover`}
+          className={` ${!room.isBlocked && details.online ? " border-primary  border-4" : `${details.type === "GROUP" ? "border-transparent" : "border-muted-foreground  border-4"}`}  w-12 h-12 rounded-full object-cover`}
         />
         <div className="absolute z-10 -bottom-0.5 -right-1">
           {(details.online || details.type === "GROUP") &&
-          typing.has(room.chatroomId) ? (
+          typing.has(room.chatroomId) &&
+          user &&
+          typing.get(room.chatroomId)?.length === 1 &&
+          !typing.get(room.chatroomId)?.includes(user.userId) ? (
             <Typing></Typing>
           ) : (
             <>

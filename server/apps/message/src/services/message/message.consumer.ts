@@ -15,7 +15,10 @@ export class MessageConsumer implements OnModuleInit {
     await this.consumer.consume(
       'message-message-service',
       {
-        topics: Object.values(KAFKA_EVENTS.MESSAGE),
+        topics: [
+          ...Object.values(KAFKA_EVENTS.MESSAGE),
+          ...Object.values(KAFKA_EVENTS.CONTACT),
+        ],
       },
       {
         eachMessage: async ({ topic, partition, message }) => {
@@ -60,6 +63,13 @@ export class MessageConsumer implements OnModuleInit {
 
             case KAFKA_EVENTS.MESSAGE.RECEIVED:
               await this.service.receivedMessage(payload);
+              break;
+
+            case KAFKA_EVENTS.CONTACT.BLOCK:
+              await this.service.blockUserMessage(payload);
+              break;
+            case KAFKA_EVENTS.CONTACT.UNBLOCK:
+              await this.service.unBlockUserMessage(payload);
               break;
 
             default:

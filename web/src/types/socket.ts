@@ -62,7 +62,10 @@ export interface UPDATE_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {
 }
 
 export interface DELETE_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {}
-export interface PINNED_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {}
+export interface PINNED_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {
+  for: string[];
+  pinnedBy: string;
+}
 export interface STARRED_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {}
 
 export interface REACTION_MESSAGE_SOCKET_PAYLOAD extends MESSAGE_SOCKET_PAYLOAD {
@@ -83,4 +86,9 @@ export interface DETAILS_SOCKET_PAYLOAD {
   inChat: {
     [k: string]: string[];
   };
+}
+export interface BLOCK_STATUS_PAYLOAD {
+  contactId: string;
+  userId: string;
+  chatroomId: string;
 }

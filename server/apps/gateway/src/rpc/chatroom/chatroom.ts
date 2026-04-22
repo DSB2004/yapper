@@ -5,6 +5,8 @@ import { join } from 'path';
 import type {
   GetChatroomIdsRequest,
   GetChatroomIdsResponse,
+  GetChatroomSummaryRequest,
+  GetChatroomSummaryResponse,
 } from '@yapper/types';
 import { Observable } from 'rxjs';
 
@@ -12,6 +14,9 @@ export type ChatroomGrpcService = {
   getChatroomIds(
     data: GetChatroomIdsRequest,
   ): Observable<GetChatroomIdsResponse>;
+  getChatroomSummary(
+    data: GetChatroomSummaryRequest,
+  ): Observable<GetChatroomSummaryResponse>;
 };
 
 @Injectable()

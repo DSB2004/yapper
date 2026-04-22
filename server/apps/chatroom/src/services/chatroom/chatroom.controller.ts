@@ -9,6 +9,8 @@ import {
   GetChatroomResponse,
   GetChatroomsRequest,
   GetChatroomsResponse,
+  GetChatroomSummaryRequest,
+  GetChatroomSummaryResponse,
 } from '@yapper/types';
 import { GrpcMethod } from '@nestjs/microservices';
 
@@ -31,6 +33,13 @@ export class ChatroomController {
   @GrpcMethod('Chatroom', 'GetChatrooms')
   async getChatrooms(data: GetChatroomsRequest): Promise<GetChatroomsResponse> {
     return await this.service.getChatrooms(data);
+  }
+
+  @GrpcMethod('Chatroom', 'GetChatroomSummary')
+  async getChatroomSummary(
+    data: GetChatroomSummaryRequest,
+  ): Promise<GetChatroomSummaryResponse> {
+    return await this.service.getChatroomSummary(data);
   }
 
   @GrpcMethod('Chatroom', 'GetChatroomIds')

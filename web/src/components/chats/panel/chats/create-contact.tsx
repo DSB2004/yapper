@@ -74,6 +74,7 @@ export default function CreateContact() {
       } else {
         toast.success("Contact created successfully");
         console.log("details for contact", res.chatroomId, res.contactId);
+        const now = Date.now();
         if (user && res.chatroomId && res.contactId) {
           addChatroom({
             chatroomId: res.chatroomId,
@@ -86,8 +87,8 @@ export default function CreateContact() {
               userId: user.userId,
             },
 
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(now).toISOString(),
+            updatedAt: new Date(now).toISOString(),
             participants: res.other
               ? [
                   res.other,
@@ -104,7 +105,7 @@ export default function CreateContact() {
                     userId: user.userId,
                   },
                 ],
-            lastMessage: {},
+            unreadCount: 0,
           });
         }
         setForm({ firstName: "", lastName: "", phone: "" });

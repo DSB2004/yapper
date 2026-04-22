@@ -26,3 +26,29 @@ message HealthCheckResponse {
   bool success = 2;
   int32 status = 3;
 }
+
+message LastMessage{
+    string publicId=1;
+    string text=2;
+    string by=3;
+    string createdAt=4;
+    string previewText=5;  
+}
+
+
+
+message ChatroomSummary{
+  string chatroomId = 1;
+  repeated UserDetails participants = 2;
+  optional LastMessage lastMessage = 3;
+  optional string name = 4;
+  optional string description = 5;
+  optional string icon = 6;
+  string type=7;
+    string referenceId=8;
+     string createdAt=9;
+     int32 unreadCount=10;
+  UserDetails createdBy=11;
+    bool isBlocked=12;
+    bool areYouBlocked=13;
+}
